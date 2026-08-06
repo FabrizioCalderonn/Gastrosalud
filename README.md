@@ -14,6 +14,10 @@ Construido con **Next.js (App Router) + TypeScript + Tailwind CSS v4 + Prisma**.
 - **Panel administrativo** (`/admin`): login con usuario/contraseña, lista de citas con
   filtros por fecha/estado/búsqueda, y cambio de estado (pendiente, confirmada,
   cancelada, completada).
+- **Notificaciones al paciente**: al confirmar o cancelar una cita se envía un correo
+  automático (vía Resend). Además, cada cita tiene un botón "Enviar" que abre WhatsApp
+  con un mensaje ya escrito (confirmación, cancelación o recordatorio según el estado)
+  listo para enviar con un clic.
 
 El diseño original hecho con la herramienta de diseño de Claude quedó guardado en
 `design-reference/` como referencia — ya no se usa en producción.
@@ -63,6 +67,18 @@ npm run dev
 Si cambias `ADMIN_SEED_USERNAME`/`ADMIN_SEED_PASSWORD` después de la primera vez,
 vuelve a correr `npm run db:seed` para actualizar la cuenta.
 
+## Correo automático (Resend)
+
+1. Crea una cuenta gratis en [resend.com](https://resend.com) y genera una API key.
+2. Ponla en `.env` como `RESEND_API_KEY`.
+3. Mientras no tengas un dominio verificado en Resend, deja
+   `EMAIL_FROM="GastroSalud <onboarding@resend.dev>"` (su dirección de pruebas).
+4. Cuando compres el dominio del sitio, agrégalo en Resend → Domains, pega los
+   registros DNS que te dan (SPF/DKIM) en tu proveedor de dominio, y una vez
+   verificado cambia `EMAIL_FROM` a algo como `"GastroSalud <citas@tudominio.com>"`.
+5. Si `RESEND_API_KEY` no está configurado, la app sigue funcionando normal — solo
+   no se envía el correo automático (se ve un aviso pequeño en el panel admin).
+
 ## Agregar fotos reales
 
 Las fotos de la doctora y del blog están como marcadores de posición
@@ -93,6 +109,8 @@ Cambia esos valores ahí si el horario real de la clínica cambia.
      de Neon distinta para producción si prefieres separar datos de prueba y reales.
    - `SESSION_SECRET` — genera uno nuevo con `openssl rand -base64 32` (no reuses el
      de tu `.env` local).
+   - `RESEND_API_KEY` y `EMAIL_FROM` — los mismos valores que usas en local, para que
+     el correo de confirmación/cancelación funcione también en producción.
    - No hace falta poner `ADMIN_SEED_USERNAME`/`ADMIN_SEED_PASSWORD` en Vercel — esas
      solo las usa el script de seed, que corres una vez desde tu máquina (paso 3).
 3. Antes (o después) del primer deploy, siembra el usuario administrador en la base de

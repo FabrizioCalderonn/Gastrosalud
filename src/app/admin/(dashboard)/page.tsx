@@ -4,6 +4,7 @@ import { parseDateKey, todayDateKey, toDateKey, formatTime } from "@/lib/schedul
 import { formatDateFull } from "@/lib/format";
 import { APPOINTMENT_STATUSES, type AppointmentStatus } from "@/lib/validation";
 import { StatusSelect } from "@/components/admin/StatusSelect";
+import { buildWhatsAppLink } from "@/lib/whatsapp";
 import type { Prisma } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -117,12 +118,13 @@ export default async function AdminDashboardPage({
               <th className="px-5 py-3 font-bold">Contacto</th>
               <th className="px-5 py-3 font-bold">Visita</th>
               <th className="px-5 py-3 font-bold">Estado</th>
+              <th className="px-5 py-3 font-bold">WhatsApp</th>
             </tr>
           </thead>
           <tbody>
             {appointments.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-5 py-8 text-center text-muted">
+                <td colSpan={7} className="px-5 py-8 text-center text-muted">
                   No hay citas con estos filtros.
                 </td>
               </tr>
@@ -141,6 +143,22 @@ export default async function AdminDashboardPage({
                 </td>
                 <td className="px-5 py-4">
                   <StatusSelect id={a.id} status={a.status as AppointmentStatus} />
+                </td>
+                <td className="px-5 py-4">
+                  <a
+                    href={buildWhatsAppLink({
+                      phone: a.phone,
+                      patientName: a.patientName,
+                      dateKey: toDateKey(a.date),
+                      minutes: a.minutes,
+                      status: a.status as AppointmentStatus,
+                    })}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-full border-2 border-success bg-success-tint px-3 py-1.5 text-xs font-bold text-success"
+                  >
+                    Enviar
+                  </a>
                 </td>
               </tr>
             ))}

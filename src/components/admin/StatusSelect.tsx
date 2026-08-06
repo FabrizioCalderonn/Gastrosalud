@@ -15,19 +15,25 @@ export function StatusSelect({ id, status }: { id: string; status: AppointmentSt
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [value, setValue] = useState(status);
+  const [emailWarning, setEmailWarning] = useState<string | null>(null);
 
   async function onChange(next: AppointmentStatus) {
     setValue(next);
     setLoading(true);
+    setEmailWarning(null);
     try {
       const res = await fetch(`/api/admin/appointments/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: next }),
       });
+      const data = await res.json().catch(() => null);
       if (!res.ok) {
         setValue(status);
         return;
+      }
+      if (data?.email && data.email.sent === false) {
+        setEmailWarning("No se pudo enviar el correo automático");
       }
       router.refresh();
     } finally {
@@ -36,18 +42,21 @@ export function StatusSelect({ id, status }: { id: string; status: AppointmentSt
   }
 
   return (
-    <select
-      value={value}
-      disabled={loading}
-      onChange={(e) => onChange(e.target.value as AppointmentStatus)}
-      className={statusClass(value) + " rounded-full border-2 px-3 py-1.5 text-xs font-bold"}
-    >
-      {APPOINTMENT_STATUSES.map((s) => (
-        <option key={s} value={s}>
-          {STATUS_LABELS[s]}
-        </option>
-      ))}
-    </select>
+    <div>
+      <select
+        value={value}
+        disabled={loading}
+        onChange={(e) => onChange(e.target.value as AppointmentStatus)}
+        className={statusClass(value) + " rounded-full border-2 px-3 py-1.5 text-xs font-bold"}
+      >
+        {APPOINTMENT_STATUSES.map((s) => (
+          <option key={s} value={s}>
+            {STATUS_LABELS[s]}
+          </option>
+        ))}
+      </select>
+      {emailWarning && <div className="mt-1 max-w-[160px] text-[11px] text-warning">{emailWarning}</div>}
+    </div>
   );
 }
 
