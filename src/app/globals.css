@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+:root {
+  --color-cream: #fbf9f5;
+  --color-surface: #ffffff;
+  --color-border: #efe9df;
+  --color-border-strong: #e7e1d5;
+
+  --color-ink: #3a332c;
+  --color-body: #4a4038;
+  --color-muted: #6b6258;
+  --color-muted-2: #7a7168;
+  --color-faint: #9a9184;
+
+  --color-teal: #2ca6ae;
+  --color-teal-dark: #1e8a91;
+  --color-teal-darker: #166f75;
+  --color-teal-tint: #eaf6f3;
+
+  --color-green: #7ab648;
+
+  --color-footer: #3a332c;
+  --color-footer-text: #f3efe6;
+  --color-footer-muted: #c9c1b4;
+  --color-footer-border: #4e4638;
+
+  --color-danger: #c0392b;
+  --color-danger-tint: #fbeae8;
+  --color-warning: #b8860b;
+  --color-warning-tint: #fbf3df;
+  --color-success: #2f8f5b;
+  --color-success-tint: #eaf7ef;
+}
+
+@theme inline {
+  --color-cream: var(--color-cream);
+  --color-surface: var(--color-surface);
+  --color-border: var(--color-border);
+  --color-border-strong: var(--color-border-strong);
+  --color-ink: var(--color-ink);
+  --color-body: var(--color-body);
+  --color-muted: var(--color-muted);
+  --color-muted-2: var(--color-muted-2);
+  --color-faint: var(--color-faint);
+  --color-teal: var(--color-teal);
+  --color-teal-dark: var(--color-teal-dark);
+  --color-teal-darker: var(--color-teal-darker);
+  --color-teal-tint: var(--color-teal-tint);
+  --color-green: var(--color-green);
+  --color-footer: var(--color-footer);
+  --color-footer-text: var(--color-footer-text);
+  --color-footer-muted: var(--color-footer-muted);
+  --color-footer-border: var(--color-footer-border);
+  --color-danger: var(--color-danger);
+  --color-danger-tint: var(--color-danger-tint);
+  --color-warning: var(--color-warning);
+  --color-warning-tint: var(--color-warning-tint);
+  --color-success: var(--color-success);
+  --color-success-tint: var(--color-success-tint);
+  --font-heading: var(--font-poppins);
+  --font-body: var(--font-nunito);
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-body);
+  font-family: var(--font-body), sans-serif;
+}
+
+a {
+  color: var(--color-teal-dark);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--color-teal-darker);
+}
+
+::selection {
+  background: var(--color-teal-tint);
+  color: var(--color-teal-darker);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-teal);
+  outline-offset: 2px;
+}

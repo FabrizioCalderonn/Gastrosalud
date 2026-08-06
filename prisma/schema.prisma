@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Appointment {
+  id          String   @id @default(cuid())
+  // Calendar day the appointment falls on, stored at UTC midnight.
+  date        DateTime
+  // Slot start expressed as minutes after midnight (e.g. 8:30am = 510).
+  minutes     Int
+  patientName String
+  phone       String
+  email       String
+  // "primera" | "seguimiento"
+  visitType   String
+  // "pendiente" | "confirmada" | "cancelada"
+  status      String   @default("pendiente")
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([date, minutes])
+  @@index([date])
+  @@index([status])
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime @default(now())
+}

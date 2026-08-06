@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&amp;family=Nunito+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; }
+    a { color: #1E8A91; text-decoration: none; }
+    a:hover { color: #166F75; }
+  </style>
+  <script src="./image-slot.js"></script>
+</helmet>
+<div style="font-family:'Nunito Sans',sans-serif; background:#FBF9F5; color:#4A4038; min-height:100vh;">
+
+  <header style="position:sticky; top:0; z-index:50; background:#FFFFFF; border-bottom:1px solid #EFE9DF; display:flex; align-items:center; justify-content:space-between; padding:14px 32px; gap:16px; flex-wrap:wrap;">
+    <div style="display:flex; align-items:center; gap:12px; cursor:pointer;" onClick="{{ goLanding }}">
+      <div style="width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,#2CA6AE 50%,#7AB648 50%); flex-shrink:0;"></div>
+      <div style="line-height:1.15;">
+        <div style="font-family:'Poppins',sans-serif; font-weight:700; font-size:19px; color:#4A4038;">GastroSalud</div>
+        <div style="font-size:11px; color:#7A7168; letter-spacing:0.03em;">Dra. Angelica Salgado</div>
+      </div>
+    </div>
+    <sc-if value="{{ isLanding }}" hint-placeholder-val="{{ true }}">
+      <nav style="display:flex; gap:22px; align-items:center; flex-wrap:wrap;">
+        <a href="#doctora" style="font-size:14px; font-weight:700; color:#4A4038;">Doctora</a>
+        
+        <a href="#seguros" style="font-size:14px; font-weight:700; color:#4A4038;">Seguros</a>
+        <a href="#blog" style="font-size:14px; font-weight:700; color:#4A4038;">Blog</a>
+        <a href="#faq" style="font-size:14px; font-weight:700; color:#4A4038;">Preguntas</a>
+        <a href="#contacto" style="font-size:14px; font-weight:700; color:#4A4038;">Contacto</a>
+      </nav>
+    </sc-if>
+    <sc-if value="{{ isLanding }}" hint-placeholder-val="{{ true }}">
+      <button onClick="{{ goBooking }}" style="background:#2CA6AE; color:#fff; border:none; border-radius:999px; padding:12px 26px; font-size:15px; font-weight:700; font-family:'Poppins',sans-serif; cursor:pointer; box-shadow:0 6px 16px rgba(44,166,174,0.35);">Haz tu cita</button>
+    </sc-if>
+    <sc-if value="{{ isBooking }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ goLanding }}" style="background:#F2EFE8; color:#4A4038; border:none; border-radius:999px; padding:12px 22px; font-size:14px; font-weight:700; font-family:'Poppins',sans-serif; cursor:pointer;">← Volver al inicio</button>
+    </sc-if>
+  </header>
+
+  <sc-if value="{{ isLanding }}" hint-placeholder-val="{{ true }}">
+    <main>
+      <section style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: center; padding: 72px 64px; max-width: 1280px; margin: 0 auto; justify-content: flex-start">
+        <div>
+          <div style="display:inline-block; background:#EAF6F3; color:#1E8A91; font-size:13px; font-weight:700; padding:6px 14px; border-radius:999px; margin-bottom:20px; font-family:'Poppins',sans-serif;">Gastroenterología · Endoscopía · Medicina interna</div>
+          <h1 style="font-family:'Poppins',sans-serif; font-size:44px; font-weight:800; line-height:1.15; margin:0 0 20px; color:#3A332C; text-wrap:pretty;">Cuidamos tu salud digestiva con calidez y experiencia</h1>
+          <p style="font-size:17px; line-height:1.7; color:#6B6258; margin:0 0 32px; max-width:520px;">La Dra. Angelica Salgado te acompaña con diagnóstico y tratamiento especializado en gastroenterología, endoscopía digestiva y medicina interna, en Santa Ana, El Salvador.</p>
+          <div style="display: flex; gap: 16px; flex-wrap: wrap; justify-content: flex-start">
+            
+            
+          <button onClick="{{ goBooking }}" style="background: #2CA6AE; color: #fff; border: none; border-radius: 999px; padding: 16px 32px; font-size: 20px; font-weight: 700; font-family: 'Poppins',sans-serif; cursor: pointer; box-shadow: 0 10px 24px rgba(44,166,174,0.35); text-align: center; width: 200px">Haz tu cita</button></div>
+        </div>
+        <image-slot id="hero-photo" shape="rounded" radius="28" placeholder="Foto de la Dra. Angelica Salgado" style="width:100%; height:420px; display:block; background:#F1ECE2;"></image-slot>
+      </section>
+
+      <section id="doctora" style="background:#FFFFFF; padding:72px 64px;">
+        <div style="max-width:1100px; margin:0 auto; display:grid; grid-template-columns:0.7fr 1.3fr; gap:56px; align-items:center;">
+          <image-slot id="doctora-photo" shape="rounded" radius="24" placeholder="Foto de la Dra. Angelica Salgado" style="width:100%; height:360px; display:block; background:#F1ECE2;"></image-slot>
+          <div>
+            <div style="font-size:13px; font-weight:700; color:#7AB648; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:10px;">Conoce a tu doctora</div>
+            <h2 style="font-family:'Poppins',sans-serif; font-size:32px; font-weight:700; margin:0 0 16px; color:#3A332C;">Dra. Angelica Salgado</h2>
+            <p style="font-size:16px; line-height:1.8; color:#6B6258; margin:0 0 16px;">Especialista en Gastroenterología, Endoscopía digestiva y Medicina interna. Combina un trato cercano con un enfoque clínico riguroso para ofrecer diagnósticos precisos y tratamientos efectivos.</p>
+            <p style="font-size:16px; line-height:1.8; color:#6B6258; margin:0;">Su prioridad es que cada paciente se sienta escuchado y acompañado durante todo su proceso de salud digestiva.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="servicios" style="padding:72px 64px; max-width:1200px; margin:0 auto;">
+        <div style="text-align:center; margin-bottom:44px;">
+          <div style="font-size:13px; font-weight:700; color:#7AB648; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:10px;">Nuestros servicios</div>
+          <h2 style="font-family:'Poppins',sans-serif; font-size:32px; font-weight:700; margin:0; color:#3A332C;">Atención especializada en salud digestiva</h2>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:24px;">
+          <div style="background:#FBF9F5; border:1px solid #EFE9DF; border-radius:20px; padding:32px 28px;">
+            <div style="width:52px;height:52px;border-radius:50%;background:#EAF6F3;display:flex;align-items:center;justify-content:center;margin-bottom:20px;"><div style="width:20px;height:20px;border-radius:50%;background:#2CA6AE;"></div></div>
+            <h3 style="font-family:'Poppins',sans-serif; font-size:18px; font-weight:700; margin:0 0 10px; color:#3A332C;">Endoscopía digestiva</h3>
+            <p style="font-size:14px; line-height:1.6; color:#6B6258; margin:0;">Diagnóstico preciso del tracto digestivo superior con equipo especializado.</p>
+          </div>
+          <div style="background:#FBF9F5; border:1px solid #EFE9DF; border-radius:20px; padding:32px 28px;">
+            <div style="width:52px;height:52px;border-radius:50%;background:#EAF6F3;display:flex;align-items:center;justify-content:center;margin-bottom:20px;"><div style="width:20px;height:20px;border-radius:50%;background:#7AB648;"></div></div>
+            <h3 style="font-family:'Poppins',sans-serif; font-size:18px; font-weight:700; margin:0 0 10px; color:#3A332C;">Gastroenterología general</h3>
+            <p style="font-size:14px; line-height:1.6; color:#6B6258; margin:0;">Evaluación y seguimiento de enfermedades digestivas y hepáticas.</p>
+          </div>
+          <div style="background:#FBF9F5; border:1px solid #EFE9DF; border-radius:20px; padding:32px 28px;">
+            <div style="width:52px;height:52px;border-radius:50%;background:#EAF6F3;display:flex;align-items:center;justify-content:center;margin-bottom:20px;"><div style="width:20px;height:20px;border-radius:50%;background:#2CA6AE;"></div></div>
+            <h3 style="font-family:'Poppins',sans-serif; font-size:18px; font-weight:700; margin:0 0 10px; color:#3A332C;">Medicina interna</h3>
+            <p style="font-size:14px; line-height:1.6; color:#6B6258; margin:0;">Manejo integral de la salud del adulto y enfermedades crónicas.</p>
+          </div>
+          <div style="background:#FBF9F5; border:1px solid #EFE9DF; border-radius:20px; padding:32px 28px;">
+            <div style="width:52px;height:52px;border-radius:50%;background:#EAF6F3;display:flex;align-items:center;justify-content:center;margin-bottom:20px;"><div style="width:20px;height:20px;border-radius:50%;background:#7AB648;"></div></div>
+            <h3 style="font-family:'Poppins',sans-serif; font-size:18px; font-weight:700; margin:0 0 10px; color:#3A332C;">Colonoscopía</h3>
+            <p style="font-size:14px; line-height:1.6; color:#6B6258; margin:0;">Prevención y detección temprana de afecciones del colon.</p>
+          </div>
+          <div style="background:#FBF9F5; border:1px solid #EFE9DF; border-radius:20px; padding:32px 28px;">
+            <div style="width:52px;height:52px;border-radius:50%;background:#EAF6F3;display:flex;align-items:center;justify-content:center;margin-bottom:20px;"><div style="width:20px;height:20px;border-radius:50%;background:#2CA6AE;"></div></div>
+            <h3 style="font-family:'Poppins',sans-serif; font-size:18px; font-weight:700; margin:0 0 10px; color:#3A332C;">Reflujo y gastritis</h3>
+            <p style="font-size:14px; line-height:1.6; color:#6B6258; margin:0;">Diagnóstico y tratamiento personalizado para molestias digestivas.</p>
+          </div>
+          <div style="background:#FBF9F5; border:1px solid #EFE9DF; border-radius:20px; padding:32px 28px;">
+            <div style="width:52px;height:52px;border-radius:50%;background:#EAF6F3;display:flex;align-items:center;justify-content:center;margin-bottom:20px;"><div style="width:20px;height:20px;border-radius:50%;background:#7AB648;"></div></div>
+            <h3 style="font-family:'Poppins',sans-serif; font-size:18px; font-weight:700; margin:0 0 10px; color:#3A332C;">Chequeos preventivos</h3>
+            <p style="font-size:14px; line-height:1.6; color:#6B6258; margin:0;">Revisiones periódicas para cuidar tu salud digestiva a tiempo.</p>
+          </div>
+        </div>
+      </section>
+
+      <sc-if value="{{ showInsurance }}" hint-placeholder-val="{{ true }}">
+        <section id="seguros" style="padding:64px; background:#FFFFFF;">
+          <div style="max-width:1000px; margin:0 auto; text-align:center;">
+            <div style="font-size:13px; font-weight:700; color:#7AB648; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:10px;">Seguros médicos</div>
+            <h2 style="font-family:'Poppins',sans-serif; font-size:30px; font-weight:700; margin:0 0 12px; color:#3A332C;">Trabajamos con tu aseguradora</h2>
+            <p style="font-size:15px; color:#6B6258; margin:0 0 32px;">Aceptamos las principales aseguradoras de El Salvador. También atendemos pacientes particulares.</p>
+            <div style="display:flex; gap:20px; justify-content:center; flex-wrap:wrap;">
+              <div style="width:160px;height:80px;border-radius:12px;background:repeating-linear-gradient(45deg,#F2EFE8,#F2EFE8 8px,#EDE7DA 8px,#EDE7DA 16px);display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:11px;color:#9A9184;text-align:center;padding:8px;">logo aseguradora</div>
+              <div style="width:160px;height:80px;border-radius:12px;background:repeating-linear-gradient(45deg,#F2EFE8,#F2EFE8 8px,#EDE7DA 8px,#EDE7DA 16px);display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:11px;color:#9A9184;text-align:center;padding:8px;">logo aseguradora</div>
+              <div style="width:160px;height:80px;border-radius:12px;background:repeating-linear-gradient(45deg,#F2EFE8,#F2EFE8 8px,#EDE7DA 8px,#EDE7DA 16px);display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:11px;color:#9A9184;text-align:center;padding:8px;">logo aseguradora</div>
+              <div style="width:160px;height:80px;border-radius:12px;background:repeating-linear-gradient(45deg,#F2EFE8,#F2EFE8 8px,#EDE7DA 8px,#EDE7DA 16px);display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:11px;color:#9A9184;text-align:center;padding:8px;">logo aseguradora</div>
+            </div>
+          </div>
+        </section>
+      </sc-if>
+
+      <section id="faq" style="padding:72px 64px; max-width:800px; margin:0 auto;">
+        <h2 style="font-family:'Poppins',sans-serif; font-size:30px; font-weight:700; text-align:center; margin:0 0 8px; color:#3A332C;">Preguntas frecuentes</h2>
+        <p style="text-align:center; color:#6B6258; font-size:15px; margin:0 0 32px;">Todo lo que necesitas saber antes de tu visita</p>
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <sc-for list="{{ faqs }}" as="f" hint-placeholder-count="5">
+            <div style="border:1px solid #EFE9DF; border-radius:16px; overflow:hidden; background:#FFFFFF;">
+              <button onClick="{{ f.onClick }}" style="width:100%; text-align:left; background:none; border:none; padding:20px 24px; font-size:16px; font-weight:700; font-family:'Poppins',sans-serif; color:#3A332C; cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:16px;">
+                <span>{{ f.q }}</span>
+                <span style="font-size:20px; color:#2CA6AE; flex-shrink:0;">{{ f.openSymbol }}</span>
+              </button>
+              <sc-if value="{{ f.open }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:0 24px 20px; font-size:15px; line-height:1.7; color:#6B6258;">{{ f.a }}</div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <sc-if value="{{ showBlog }}" hint-placeholder-val="{{ true }}">
+        <section id="blog" style="padding:72px 64px; background:#FFFFFF;">
+          <div style="max-width:1200px; margin:0 auto;">
+            <div style="text-align:center; margin-bottom:44px;">
+              <div style="font-size:13px; font-weight:700; color:#7AB648; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:10px;">Blog</div>
+              <h2 style="font-family:'Poppins',sans-serif; font-size:30px; font-weight:700; margin:0; color:#3A332C;">Artículos de salud digestiva</h2>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:24px;">
+              <div style="border:1px solid #EFE9DF; border-radius:20px; overflow:hidden; background:#FBF9F5;">
+                <image-slot id="blog-1" shape="rect" placeholder="Imagen del artículo" style="width:100%; height:180px; display:block; background:#F1ECE2;"></image-slot>
+                <div style="padding:22px;">
+                  <h3 style="font-family:'Poppins',sans-serif; font-size:17px; font-weight:700; margin:0 0 8px; color:#3A332C;">5 señales de alerta digestiva que no debes ignorar</h3>
+                  <p style="font-size:14px; line-height:1.6; color:#6B6258; margin:0;">Aprende a reconocer síntomas que ameritan una consulta oportuna.</p>
+                </div>
+              </div>
+              <div style="border:1px solid #EFE9DF; border-radius:20px; overflow:hidden; background:#FBF9F5;">
+                <image-slot id="blog-2" shape="rect" placeholder="Imagen del artículo" style="width:100%; height:180px; display:block; background:#F1ECE2;"></image-slot>
+                <div style="padding:22px;">
+                  <h3 style="font-family:'Poppins',sans-serif; font-size:17px; font-weight:700; margin:0 0 8px; color:#3A332C;">Qué esperar en tu primera endoscopía</h3>
+                  <p style="font-size:14px; line-height:1.6; color:#6B6258; margin:0;">Preparación, procedimiento y recuperación explicados con calma.</p>
+                </div>
+              </div>
+              <div style="border:1px solid #EFE9DF; border-radius:20px; overflow:hidden; background:#FBF9F5;">
+                <image-slot id="blog-3" shape="rect" placeholder="Imagen del artículo" style="width:100%; height:180px; display:block; background:#F1ECE2;"></image-slot>
+                <div style="padding:22px;">
+                  <h3 style="font-family:'Poppins',sans-serif; font-size:17px; font-weight:700; margin:0 0 8px; color:#3A332C;">Alimentación saludable para tu sistema digestivo</h3>
+                  <p style="font-size:14px; line-height:1.6; color:#6B6258; margin:0;">Hábitos simples que marcan una gran diferencia.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </sc-if>
+
+      <footer id="contacto" style="background:#3A332C; color:#F3EFE6; padding:56px 64px 32px;">
+        <div style="max-width:1200px; margin:0 auto; display:grid; grid-template-columns:1.3fr 1fr 1fr; gap:40px;">
+          <div>
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+              <div style="width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#2CA6AE 50%,#7AB648 50%);"></div>
+              <div style="font-family:'Poppins',sans-serif; font-weight:700; font-size:18px;">GastroSalud</div>
+            </div>
+            <p style="font-size:14px; line-height:1.7; color:#C9C1B4; max-width:320px; margin:0 0 20px;">Clínica de la Dra. Angelica Salgado — Gastroenterología, Endoscopía digestiva y Medicina interna en Santa Ana, El Salvador.</p>
+            <button onClick="{{ goBooking }}" style="background:#2CA6AE; color:#fff; border:none; border-radius:999px; padding:13px 26px; font-size:14px; font-weight:700; font-family:'Poppins',sans-serif; cursor:pointer;">Haz tu cita</button>
+          </div>
+          <div>
+            <div style="font-family:'Poppins',sans-serif; font-weight:700; font-size:14px; margin-bottom:14px; color:#fff;">Contacto</div>
+            <div style="font-size:14px; line-height:1.9; color:#C9C1B4;">
+              <div>Tel: 7867 9475</div>
+              <div>gastrosaludsv@gmail.com</div>
+              <div style="margin-top:8px;">25 Calle Poniente entre 8ª y 10ª av. Sur #33, Centro Médico de Santa Ana, Clínica 24, Santa Ana, El Salvador</div>
+            </div>
+          </div>
+          <div>
+            <div style="font-family:'Poppins',sans-serif; font-weight:700; font-size:14px; margin-bottom:14px; color:#fff;">Horario</div>
+            <div style="font-size:14px; line-height:1.9; color:#C9C1B4;">
+              <div>Lunes a viernes: 8:00am–12:00pm y 2:00pm–5:00pm</div>
+              <div>Sábados: 9:00am–1:00pm</div>
+              <div>Domingos: cerrado</div>
+            </div>
+          </div>
+        </div>
+        <div style="max-width:1200px; margin:32px auto 0; padding-top:20px; border-top:1px solid #4E4638; font-size:12px; color:#9A9184;">© 2026 GastroSalud · Dra. Angelica Salgado</div>
+      </footer>
+    </main>
+  </sc-if>
+
+  <sc-if value="{{ isBooking }}" hint-placeholder-val="{{ false }}">
+    <main style="max-width:720px; margin:0 auto; padding:56px 24px 96px;">
+      <div style="font-size:13px; font-weight:700; color:#2CA6AE; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">{{ stepLabel }}</div>
+      <h1 style="font-family:'Poppins',sans-serif; font-size:28px; font-weight:800; margin:0 0 32px; color:#3A332C;">Agenda tu cita</h1>
+
+      <sc-if value="{{ stepIsSelect }}" hint-placeholder-val="{{ true }}">
+        <div>
+          <div style="font-size:15px; font-weight:700; color:#3A332C; margin-bottom:12px;">Elige una fecha</div>
+          <div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:8px; margin-bottom:28px;">
+            <sc-for list="{{ dateItems }}" as="d" hint-placeholder-count="12">
+              <button onClick="{{ d.onClick }}" style="min-width:64px; padding:12px 8px; border-radius:14px; border:2px solid {{ d.bd }}; background:{{ d.bg }}; color:{{ d.fg }}; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; font-family:'Poppins',sans-serif; flex-shrink:0;">
+                <span style="font-size:11px; font-weight:600; text-transform:uppercase;">{{ d.weekday }}</span>
+                <span style="font-size:18px; font-weight:800;">{{ d.day }}</span>
+                <span style="font-size:10px;">{{ d.month }}</span>
+              </button>
+            </sc-for>
+          </div>
+          <div style="font-size:15px; font-weight:700; color:#3A332C; margin-bottom:12px;">Horarios disponibles — {{ selectedDateLabelFull }}</div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(96px,1fr)); gap:10px; margin-bottom:32px;">
+            <sc-for list="{{ slots }}" as="s" hint-placeholder-count="8">
+              <button onClick="{{ s.onClick }}" disabled="{{ s.booked }}" style="padding:12px 8px; border-radius:12px; border:2px solid {{ s.bd }}; background:{{ s.bg }}; color:{{ s.fg }}; opacity:{{ s.opacity }}; cursor:{{ s.cursorVal }}; font-family:'Poppins',sans-serif; font-weight:700; font-size:14px;">{{ s.label }}</button>
+            </sc-for>
+          </div>
+          <button onClick="{{ goStepForm }}" disabled="{{ cannotContinue }}" style="width:100%; padding:16px; border-radius:999px; border:none; background:#2CA6AE; color:#fff; font-family:'Poppins',sans-serif; font-weight:700; font-size:16px; cursor:pointer; opacity:{{ continueOpacity }};">Continuar</button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ stepIsForm }}" hint-placeholder-val="{{ false }}">
+        <form onSubmit="{{ submitForm }}" style="display:flex; flex-direction:column; gap:20px;">
+          <div style="background:#EAF6F3; border-radius:14px; padding:16px 20px; font-size:14px; color:#1E8A91; font-weight:700;">Fecha: {{ selectedDateLabelFull }} · Hora: {{ selectedTimeLabel }}</div>
+          <div>
+            <label style="font-size:14px; font-weight:700; color:#3A332C; display:block; margin-bottom:6px;">Nombre completo</label>
+            <input required="" value="{{ form.name }}" onChange="{{ onNameChange }}" placeholder="Ej. María Pérez" style="width:100%; box-sizing:border-box; padding:14px 16px; border-radius:12px; border:2px solid #E7E1D5; font-size:15px; font-family:'Nunito Sans',sans-serif;">
+          </div>
+          <div>
+            <label style="font-size:14px; font-weight:700; color:#3A332C; display:block; margin-bottom:6px;">Teléfono</label>
+            <input required="" value="{{ form.phone }}" onChange="{{ onPhoneChange }}" placeholder="Ej. 7000 0000" style="width:100%; box-sizing:border-box; padding:14px 16px; border-radius:12px; border:2px solid #E7E1D5; font-size:15px; font-family:'Nunito Sans',sans-serif;">
+          </div>
+          <div>
+            <label style="font-size:14px; font-weight:700; color:#3A332C; display:block; margin-bottom:6px;">Correo electrónico</label>
+            <input required="" type="email" value="{{ form.email }}" onChange="{{ onEmailChange }}" placeholder="Ej. maria@correo.com" style="width:100%; box-sizing:border-box; padding:14px 16px; border-radius:12px; border:2px solid #E7E1D5; font-size:15px; font-family:'Nunito Sans',sans-serif;">
+          </div>
+          <div>
+            <label style="font-size:14px; font-weight:700; color:#3A332C; display:block; margin-bottom:8px;">¿Primera vez o seguimiento?</label>
+            <div style="display:flex; gap:12px;">
+              <button type="button" onClick="{{ setVisitFirst }}" style="flex:1; padding:12px; border-radius:12px; border:2px solid {{ visitFirstBd }}; background:{{ visitFirstBg }}; color:{{ visitFirstFg }}; font-weight:700; cursor:pointer; font-family:'Poppins',sans-serif;">Primera vez</button>
+              <button type="button" onClick="{{ setVisitFollow }}" style="flex:1; padding:12px; border-radius:12px; border:2px solid {{ visitFollowBd }}; background:{{ visitFollowBg }}; color:{{ visitFollowFg }}; font-weight:700; cursor:pointer; font-family:'Poppins',sans-serif;">Seguimiento</button>
+            </div>
+          </div>
+          <div style="display:flex; gap:12px; margin-top:8px;">
+            <button type="button" onClick="{{ backToSelect }}" style="flex:1; padding:16px; border-radius:999px; border:2px solid #E7E1D5; background:#fff; color:#3A332C; font-weight:700; cursor:pointer; font-family:'Poppins',sans-serif;">Atrás</button>
+            <button type="submit" style="flex:2; padding:16px; border-radius:999px; border:none; background:#2CA6AE; color:#fff; font-weight:700; cursor:pointer; font-family:'Poppins',sans-serif;">Confirmar cita</button>
+          </div>
+        </form>
+      </sc-if>
+
+      <sc-if value="{{ stepIsDone }}" hint-placeholder-val="{{ false }}">
+        <div style="text-align:center; padding:40px 20px;">
+          <div style="width:72px; height:72px; border-radius:50%; background:#EAF6F3; display:flex; align-items:center; justify-content:center; margin:0 auto 24px;">
+            <div style="width:24px; height:14px; border-left:4px solid #2CA6AE; border-bottom:4px solid #2CA6AE; transform:rotate(-45deg) translate(2px,-3px);"></div>
+          </div>
+          <h2 style="font-family:'Poppins',sans-serif; font-size:26px; font-weight:800; color:#3A332C; margin:0 0 12px;">¡Tu cita fue agendada!</h2>
+          <p style="font-size:16px; color:#6B6258; line-height:1.7; max-width:440px; margin:0 auto 8px;">Te esperamos el {{ selectedDateLabelFull }} a las {{ selectedTimeLabel }}.</p>
+          <p style="font-size:14px; color:#9A9184; margin-bottom:32px;">Hemos enviado la confirmación a {{ form.email }} y por WhatsApp al {{ form.phone }}.</p>
+          <button onClick="{{ resetBooking }}" style="padding:14px 28px; border-radius:999px; border:2px solid #E7E1D5; background:#fff; color:#3A332C; font-weight:700; cursor:pointer; font-family:'Poppins',sans-serif;">Agendar otra cita</button>
+        </div>
+      </sc-if>
+    </main>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;slotDurationMinutes&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:30,&quot;min&quot;:15,&quot;max&quot;:60,&quot;step&quot;:15,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Citas&quot;},&quot;showBlogSection&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Secciones&quot;},&quot;showInsuranceSection&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Secciones&quot;}}">
+class Component extends DCLogic {
+  state = {
+    view: 'landing',
+    step: 'select',
+    dateIdx: 0,
+    time: null,
+    form: { name: '', phone: '', email: '', visitType: 'primera' },
+    faqOpen: 0
+  };
+
+  goBooking = () => { window.scrollTo(0, 0); this.setState({ view: 'booking', step: 'select', time: null }); };
+  goLanding = () => { window.scrollTo(0, 0); this.setState({ view: 'landing' }); };
+  pickDate = (i) => this.setState({ dateIdx: i, time: null });
+  pickTime = (t) => this.setState({ time: t });
+  goStep = (s) => this.setState({ step: s });
+  updateForm = (key, val) => this.setState((s) => ({ form: { ...s.form, [key]: val } }));
+  submitForm = (e) => { e.preventDefault(); this.setState({ step: 'done' }); };
+  toggleFaq = (i) => this.setState((s) => ({ faqOpen: s.faqOpen === i ? null : i }));
+  resetBooking = () => this.setState({ step: 'select', dateIdx: 0, time: null, form: { name: '', phone: '', email: '', visitType: 'primera' } });
+
+  buildDates() {
+    const days = [];
+    let offset = 0;
+    while (days.length < 12) {
+      const d = new Date(Date.now() + offset * 86400000);
+      offset += 1;
+      if (d.getDay() !== 0) days.push(d);
+    }
+    return days;
+  }
+
+  buildSlots(date, duration) {
+    const day = date.getDay();
+    const ranges = day === 6 ? [[9, 0, 13, 0]] : [[8, 0, 12, 0], [14, 0, 17, 0]];
+    const slots = [];
+    ranges.forEach(([sh, sm, eh, em]) => {
+      let t = sh * 60 + sm;
+      const end = eh * 60 + em;
+      while (t < end) { slots.push(t); t += duration; }
+    });
+    const seed = date.getDate() * 3 + date.getMonth() * 17;
+    return slots.map((m) => ({ minutes: m, label: this.formatTime(m), booked: ((seed + m) % 6) === 0 }));
+  }
+
+  formatTime(m) {
+    const h = Math.floor(m / 60), mi = m % 60;
+    const period = h >= 12 ? 'PM' : 'AM';
+    const h12 = (h % 12) || 12;
+    return h12 + ':' + (mi === 0 ? '00' : mi) + ' ' + period;
+  }
+
+  formatDateLabel(d) {
+    const weekday = new Intl.DateTimeFormat('es-ES', { weekday: 'short' }).format(d).replace('.', '');
+    const month = new Intl.DateTimeFormat('es-ES', { month: 'short' }).format(d).replace('.', '');
+    return { top: weekday.charAt(0).toUpperCase() + weekday.slice(1), day: d.getDate(), month: month.toUpperCase() };
+  }
+
+  renderVals() {
+    const duration = this.props.slotDurationMinutes ?? 30;
+    const showBlog = this.props.showBlogSection ?? true;
+    const showInsurance = this.props.showInsuranceSection ?? true;
+
+    const dates = this.buildDates();
+    const dateItems = dates.map((d, i) => {
+      const lbl = this.formatDateLabel(d);
+      const selected = this.state.dateIdx === i;
+      return {
+        weekday: lbl.top, day: lbl.day, month: lbl.month,
+        bg: selected ? '#2CA6AE' : '#FFFFFF', fg: selected ? '#FFFFFF' : '#3A332C', bd: selected ? '#2CA6AE' : '#E7E1D5',
+        onClick: () => this.pickDate(i)
+      };
+    });
+
+    const selectedDate = dates[this.state.dateIdx];
+    const slots = this.buildSlots(selectedDate, duration).map((s) => {
+      const selected = this.state.time === s.minutes;
+      return {
+        label: s.label, booked: s.booked,
+        bg: s.booked ? '#F2EFE8' : (selected ? '#2CA6AE' : '#FFFFFF'),
+        fg: s.booked ? '#B5ADA0' : (selected ? '#FFFFFF' : '#3A332C'),
+        bd: s.booked ? '#F2EFE8' : (selected ? '#2CA6AE' : '#E7E1D5'),
+        opacity: s.booked ? 0.6 : 1,
+        cursorVal: s.booked ? 'not-allowed' : 'pointer',
+        onClick: s.booked ? undefined : () => this.pickTime(s.minutes)
+      };
+    });
+
+    const selectedDateLabelFull = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).format(selectedDate);
+    const selectedTimeLabel = this.state.time != null ? this.formatTime(this.state.time) : '';
+    const hasTime = this.state.time != null;
+
+    const faqData = [
+      { q: '¿Necesito ayuno para una endoscopía?', a: 'Sí, se requiere ayuno de al menos 8 horas antes del procedimiento. Te daremos indicaciones completas al confirmar tu cita.' },
+      { q: '¿Cuánto dura una consulta?', a: 'Una consulta general dura entre 30 y 45 minutos, dependiendo del motivo de la visita.' },
+      { q: '¿Qué debo llevar a mi primera cita?', a: 'Documento de identidad, referencia médica (si tienes) y cualquier estudio o examen previo relacionado.' },
+      { q: '¿Puedo cancelar o reprogramar mi cita?', a: 'Sí, puedes hacerlo escribiéndonos con al menos 24 horas de anticipación por WhatsApp o correo.' },
+      { q: '¿Atienden pacientes con seguro médico?', a: 'Sí, trabajamos con varias aseguradoras. Consulta con nosotros la cobertura específica de tu póliza.' }
+    ];
+    const faqs = faqData.map((f, i) => ({ ...f, open: this.state.faqOpen === i, openSymbol: this.state.faqOpen === i ? '−' : '+', onClick: () => this.toggleFaq(i) }));
+
+    const visitFirst = this.state.form.visitType === 'primera';
+    const stepLabel = this.state.step === 'select' ? 'Paso 1 de 3 · Fecha y hora' : this.state.step === 'form' ? 'Paso 2 de 3 · Tus datos' : 'Paso 3 de 3 · Confirmación';
+
+    return {
+      isLanding: this.state.view === 'landing',
+      isBooking: this.state.view === 'booking',
+      goBooking: this.goBooking,
+      goLanding: this.goLanding,
+      showBlog, showInsurance,
+      dateItems, slots,
+      selectedDateLabelFull, selectedTimeLabel,
+      stepLabel,
+      stepIsSelect: this.state.step === 'select',
+      stepIsForm: this.state.step === 'form',
+      stepIsDone: this.state.step === 'done',
+      cannotContinue: !hasTime,
+      continueOpacity: hasTime ? 1 : 0.5,
+      goStepForm: () => this.goStep('form'),
+      backToSelect: () => this.goStep('select'),
+      form: this.state.form,
+      onNameChange: (e) => this.updateForm('name', e.target.value),
+      onPhoneChange: (e) => this.updateForm('phone', e.target.value),
+      onEmailChange: (e) => this.updateForm('email', e.target.value),
+      setVisitFirst: () => this.updateForm('visitType', 'primera'),
+      setVisitFollow: () => this.updateForm('visitType', 'seguimiento'),
+      visitFirstBg: visitFirst ? '#2CA6AE' : '#FFFFFF', visitFirstFg: visitFirst ? '#FFFFFF' : '#3A332C', visitFirstBd: visitFirst ? '#2CA6AE' : '#E7E1D5',
+      visitFollowBg: !visitFirst ? '#2CA6AE' : '#FFFFFF', visitFollowFg: !visitFirst ? '#FFFFFF' : '#3A332C', visitFollowBd: !visitFirst ? '#2CA6AE' : '#E7E1D5',
+      submitForm: this.submitForm,
+      resetBooking: this.resetBooking,
+      faqs
+    };
+  }
+}
+</script>
+</body>
+</html>
