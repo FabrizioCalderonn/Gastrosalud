@@ -20,10 +20,10 @@ El diseño original hecho con la herramienta de diseño de Claude quedó guardad
 
 ## Requisitos
 
-- Node.js 20 o 22 (LTS). **Node muy nuevo o no-LTS puede causar que los binarios
-  nativos de Next.js (SWC/Turbopack) fallen** — si `npm run dev` o `npm run build`
-  se cierran solos sin error claro, lo primero a revisar es la versión de Node
-  (`node -v`) y cambiar a una LTS con [nvm](https://github.com/nvm-sh/nvm).
+- Node.js (cualquier versión reciente sirve). Si alguna vez `npm run dev` o
+  `npm run build` imprime "Ready" y el proceso se cierra solo sin error claro, es
+  casi siempre un binario nativo de Next.js corrupto por una instalación
+  interrumpida — se arregla con `rm -rf node_modules && npm install`.
 
 ## Cómo correrlo en local
 
@@ -35,16 +35,19 @@ cp .env.example .env   # si no existe ya un .env
 Edita `.env` y define al menos:
 
 ```
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="postgresql://usuario:password@host/basededatos?sslmode=require"
 SESSION_SECRET="<genera uno con: openssl rand -base64 32>"
 ADMIN_SEED_USERNAME="admin"
 ADMIN_SEED_PASSWORD="<una contraseña segura>"
 ```
 
-Crea la base de datos y el usuario administrador inicial:
+El proyecto usa Postgres (probado con [Neon](https://neon.tech)) tanto en local como en
+producción — no SQLite — para que el mismo `schema.prisma` sirva en ambos entornos.
+
+Crea las tablas y el usuario administrador inicial:
 
 ```bash
-npm run db:migrate   # crea las tablas (SQLite local) y siembra el admin
+npm run db:migrate   # aplica las migraciones y siembra el admin
 ```
 
 Levanta el servidor:
@@ -84,18 +87,18 @@ Cambia esos valores ahí si el horario real de la clínica cambia.
 ## Desplegar en Vercel
 
 1. Sube este repositorio a GitHub y conéctalo en [vercel.com](https://vercel.com/new).
-2. **Base de datos**: SQLite (`file:./dev.db`) funciona en local pero no en Vercel
-   (las funciones serverless no conservan archivos entre ejecuciones). Antes de
-   desplegar, crea una base Postgres gratuita — por ejemplo con
-   [Neon](https://neon.tech) o el add-on de Vercel Postgres — y usa esa cadena de
-   conexión como `DATABASE_URL` en las variables de entorno del proyecto en Vercel.
-3. En `prisma/schema.prisma`, cambia el `provider` del datasource de `"sqlite"` a
-   `"postgresql"`.
-4. Corre `npx prisma migrate deploy` (o deja que se ejecute como parte del build)
-   apuntando a la base de producción, y `npm run db:seed` una vez para crear el
-   usuario administrador real.
-5. Define en Vercel las variables `DATABASE_URL`, `SESSION_SECRET`,
-   `ADMIN_SEED_USERNAME`, `ADMIN_SEED_PASSWORD`.
+2. En el proyecto de Vercel, define las variables de entorno (Settings → Environment
+   Variables):
+   - `DATABASE_URL` — la misma cadena de conexión de Neon usada en local, o una base
+     de Neon distinta para producción si prefieres separar datos de prueba y reales.
+   - `SESSION_SECRET` — genera uno nuevo con `openssl rand -base64 32` (no reuses el
+     de tu `.env` local).
+   - No hace falta poner `ADMIN_SEED_USERNAME`/`ADMIN_SEED_PASSWORD` en Vercel — esas
+     solo las usa el script de seed, que corres una vez desde tu máquina (paso 3).
+3. Antes (o después) del primer deploy, siembra el usuario administrador en la base de
+   producción corriendo localmente `npm run db:seed` con el `DATABASE_URL` de
+   producción en tu `.env`.
+4. Haz el deploy (push a la rama conectada, o "Deploy" en el dashboard de Vercel).
 
 ## Notas de seguridad
 
