@@ -18,6 +18,10 @@ Construido con **Next.js (App Router) + TypeScript + Tailwind CSS v4 + Prisma**.
   automático (vía Resend). Además, cada cita tiene un botón "Enviar" que abre WhatsApp
   con un mensaje ya escrito (confirmación, cancelación o recordatorio según el estado)
   listo para enviar con un clic.
+- **Horario y bloqueos** (`/admin/configuracion`): la Dra. Angelica (o quien administre
+  el sitio) define ahí mismo qué días y horas se atiende, la duración de cada cita, y
+  puede bloquear fechas/horas puntuales (vacaciones, una tarde, una semana) — esos
+  horarios dejan de estar disponibles para agendar automáticamente.
 
 El diseño original hecho con la herramienta de diseño de Claude quedó guardado en
 `design-reference/` como referencia — ya no se usa en producción.
@@ -89,16 +93,19 @@ Las fotos de la doctora y del blog están como marcadores de posición
    `<PlaceholderPhoto ... />` por `<Image src="/images/tu-foto.jpg" ... />`
    (usa el componente `next/image`, ya usado en el logo del header).
 
-## Horarios y duración de citas
+## Horarios, duración de citas y bloqueos
 
-Definidos en `src/lib/schedule.ts`:
+Ya no están fijos en el código — se editan desde `/admin/configuracion` una vez con
+sesión iniciada:
 
-- Lunes a viernes: 8:00am–12:00pm y 2:00pm–5:00pm
-- Sábados: 9:00am–1:00pm
-- Domingos: cerrado
-- Duración de cada cita: 30 minutos (`SLOT_DURATION_MINUTES`)
-
-Cambia esos valores ahí si el horario real de la clínica cambia.
+- **Horario de trabajo**: qué días y en qué rangos de hora se atiende, y la duración
+  de cada cita. Por defecto viene sembrado (por `npm run db:seed`) con lunes a
+  viernes 8:00am–12:00pm y 2:00pm–5:00pm, sábados 9:00am–1:00pm, domingos cerrado,
+  citas de 30 minutos.
+- **Bloquear fechas u horas**: para vacaciones, una tarde puntual, o cualquier
+  período en que no se pueda atender — esos horarios dejan de aparecer disponibles
+  para agendar automáticamente. Si ya había citas agendadas en ese rango, el panel
+  te avisa para que las contactes (con el botón de WhatsApp) y las reprogames.
 
 ## Desplegar en Vercel
 

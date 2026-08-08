@@ -17,3 +17,35 @@ export type AppointmentStatus = (typeof APPOINTMENT_STATUSES)[number];
 export const updateAppointmentStatusSchema = z.object({
   status: z.enum(APPOINTMENT_STATUSES),
 });
+
+const timeRangeSchema = z
+  .object({
+    startMinutes: z.number().int().min(0).max(24 * 60 - 1),
+    endMinutes: z.number().int().min(1).max(24 * 60),
+  })
+  .refine((r) => r.endMinutes > r.startMinutes, { message: "La hora de fin debe ser después del inicio" });
+
+export const updateWorkingHoursSchema = z.object({
+  slotDurationMinutes: z.number().int().min(5).max(240),
+  days: z.record(z.string(), z.array(timeRangeSchema)),
+});
+
+export type UpdateWorkingHoursInput = z.infer<typeof updateWorkingHoursSchema>;
+
+export const createBlockedPeriodSchema = z
+  .object({
+    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida"),
+    endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida"),
+    startMinutes: z.number().int().min(0).max(24 * 60 - 1).nullable(),
+    endMinutes: z.number().int().min(1).max(24 * 60).nullable(),
+    reason: z.string().trim().max(200).optional(),
+  })
+  .refine((v) => v.endDate >= v.startDate, { message: "La fecha de fin debe ser igual o posterior al inicio" })
+  .refine((v) => (v.startMinutes == null) === (v.endMinutes == null), {
+    message: "Define ambas horas o ninguna (para bloquear el día completo)",
+  })
+  .refine((v) => v.startMinutes == null || v.endMinutes == null || v.endMinutes > v.startMinutes, {
+    message: "La hora de fin debe ser después del inicio",
+  });
+
+export type CreateBlockedPeriodInput = z.infer<typeof createBlockedPeriodSchema>;

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { cookies } from "next/headers";
 import { SESSION_COOKIE_NAME, verifySessionToken } from "@/lib/auth";
 import { LogoutButton } from "@/components/admin/LogoutButton";
@@ -9,7 +10,7 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
 
   return (
     <div className="min-h-screen bg-cream">
-      <header className="flex items-center justify-between border-b border-border bg-surface px-6 py-3.5 md:px-8">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-surface px-6 py-3.5 md:px-8">
         <div className="flex items-center gap-3">
           <Image
             src="/images/logo-gastrosalud.png"
@@ -23,6 +24,14 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
             <div className="text-[11px] text-muted-2">Panel administrativo</div>
           </div>
         </div>
+        <nav className="flex items-center gap-5">
+          <Link href="/admin" className="text-sm font-bold text-ink hover:text-teal-dark">
+            Citas
+          </Link>
+          <Link href="/admin/configuracion" className="text-sm font-bold text-ink hover:text-teal-dark">
+            Horario y bloqueos
+          </Link>
+        </nav>
         <div className="flex items-center gap-4">
           {session && <span className="text-sm text-muted">Hola, {session.username}</span>}
           <LogoutButton />

@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { nextBookableDateKeys } from "@/lib/schedule";
+import { useEffect, useState } from "react";
 import { formatDateFull, formatDateShort } from "@/lib/format";
 
 type Slot = { minutes: number; label: string; booked: boolean };
@@ -10,7 +9,8 @@ type Step = "select" | "form" | "done";
 const DATE_COUNT = 12;
 
 export function BookingFlow() {
-  const dateKeys = useMemo(() => nextBookableDateKeys(DATE_COUNT), []);
+  const [dateKeys, setDateKeys] = useState<string[]>([]);
+  const [loadingDates, setLoadingDates] = useState(true);
   const [dateIdx, setDateIdx] = useState(0);
   const [minutes, setMinutes] = useState<number | null>(null);
   const [slots, setSlots] = useState<Slot[]>([]);
@@ -28,6 +28,14 @@ export function BookingFlow() {
   const selectedDateKey = dateKeys[dateIdx];
 
   useEffect(() => {
+    fetch(`/api/booking-days?count=${DATE_COUNT}`)
+      .then((res) => res.json())
+      .then((data) => setDateKeys(data.dates ?? []))
+      .finally(() => setLoadingDates(false));
+  }, []);
+
+  useEffect(() => {
+    if (!selectedDateKey) return;
     let cancelled = false;
     setLoadingSlots(true);
     setMinutes(null);
@@ -108,67 +116,79 @@ export function BookingFlow() {
       {step === "select" && (
         <div>
           <div className="mb-3 text-[15px] font-bold text-ink">Elige una fecha</div>
-          <div className="mb-7 flex gap-2.5 overflow-x-auto pb-2">
-            {dateKeys.map((key, i) => {
-              const lbl = formatDateShort(key);
-              const selected = dateIdx === i;
-              return (
-                <button
-                  key={key}
-                  onClick={() => setDateIdx(i)}
-                  className={`flex shrink-0 flex-col items-center gap-0.5 rounded-2xl border-2 px-2 py-3 font-heading ${
-                    selected ? "border-teal bg-teal text-white" : "border-border-strong bg-surface text-ink"
-                  }`}
-                  style={{ minWidth: 64 }}
-                >
-                  <span className="text-[11px] font-semibold uppercase">{lbl.weekday}</span>
-                  <span className="text-lg font-extrabold">{lbl.day}</span>
-                  <span className="text-[10px]">{lbl.month}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="mb-3 text-[15px] font-bold text-ink">
-            Horarios disponibles — {formatDateFull(selectedDateKey)}
-          </div>
-          <div className="mb-8 grid grid-cols-[repeat(auto-fill,minmax(96px,1fr))] gap-2.5">
-            {loadingSlots ? (
-              <div className="col-span-full py-4 text-sm text-muted">Cargando horarios…</div>
-            ) : slots.length === 0 ? (
-              <div className="col-span-full py-4 text-sm text-muted">
-                No hay horarios disponibles este día.
-              </div>
-            ) : (
-              slots.map((s) => {
-                const selected = minutes === s.minutes;
+          {loadingDates ? (
+            <div className="mb-7 py-4 text-sm text-muted">Cargando fechas disponibles…</div>
+          ) : dateKeys.length === 0 ? (
+            <div className="mb-7 py-4 text-sm text-muted">
+              No hay fechas disponibles por ahora. Contáctanos directamente para agendar.
+            </div>
+          ) : (
+            <div className="mb-7 flex gap-2.5 overflow-x-auto pb-2">
+              {dateKeys.map((key, i) => {
+                const lbl = formatDateShort(key);
+                const selected = dateIdx === i;
                 return (
                   <button
-                    key={s.minutes}
-                    disabled={s.booked}
-                    onClick={() => setMinutes(s.minutes)}
-                    className={`rounded-xl border-2 px-2 py-3 font-heading text-sm font-bold ${
-                      s.booked
-                        ? "cursor-not-allowed border-[#F2EFE8] bg-[#F2EFE8] text-faint opacity-60"
-                        : selected
-                          ? "border-teal bg-teal text-white"
-                          : "border-border-strong bg-surface text-ink"
+                    key={key}
+                    onClick={() => setDateIdx(i)}
+                    className={`flex shrink-0 flex-col items-center gap-0.5 rounded-2xl border-2 px-2 py-3 font-heading ${
+                      selected ? "border-teal bg-teal text-white" : "border-border-strong bg-surface text-ink"
                     }`}
+                    style={{ minWidth: 64 }}
                   >
-                    {s.label}
+                    <span className="text-[11px] font-semibold uppercase">{lbl.weekday}</span>
+                    <span className="text-lg font-extrabold">{lbl.day}</span>
+                    <span className="text-[10px]">{lbl.month}</span>
                   </button>
                 );
-              })
-            )}
-          </div>
+              })}
+            </div>
+          )}
 
-          <button
-            onClick={() => setStep("form")}
-            disabled={minutes == null}
-            className="w-full rounded-full bg-teal py-4 font-heading text-base font-bold text-white disabled:opacity-50"
-          >
-            Continuar
-          </button>
+          {selectedDateKey && (
+            <>
+              <div className="mb-3 text-[15px] font-bold text-ink">
+                Horarios disponibles — {formatDateFull(selectedDateKey)}
+              </div>
+              <div className="mb-8 grid grid-cols-[repeat(auto-fill,minmax(96px,1fr))] gap-2.5">
+                {loadingSlots ? (
+                  <div className="col-span-full py-4 text-sm text-muted">Cargando horarios…</div>
+                ) : slots.length === 0 ? (
+                  <div className="col-span-full py-4 text-sm text-muted">
+                    No hay horarios disponibles este día.
+                  </div>
+                ) : (
+                  slots.map((s) => {
+                    const selected = minutes === s.minutes;
+                    return (
+                      <button
+                        key={s.minutes}
+                        disabled={s.booked}
+                        onClick={() => setMinutes(s.minutes)}
+                        className={`rounded-xl border-2 px-2 py-3 font-heading text-sm font-bold ${
+                          s.booked
+                            ? "cursor-not-allowed border-[#F2EFE8] bg-[#F2EFE8] text-faint opacity-60"
+                            : selected
+                              ? "border-teal bg-teal text-white"
+                              : "border-border-strong bg-surface text-ink"
+                        }`}
+                      >
+                        {s.label}
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+
+              <button
+                onClick={() => setStep("form")}
+                disabled={minutes == null}
+                className="w-full rounded-full bg-teal py-4 font-heading text-base font-bold text-white disabled:opacity-50"
+              >
+                Continuar
+              </button>
+            </>
+          )}
         </div>
       )}
 

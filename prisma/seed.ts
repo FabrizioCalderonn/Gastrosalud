@@ -22,6 +22,28 @@ async function main() {
   });
 
   console.log(`Admin user ready: ${user.username}`);
+
+  await prisma.scheduleSettings.upsert({
+    where: { id: 1 },
+    update: {},
+    create: { id: 1, slotDurationMinutes: 30 },
+  });
+
+  const existingRanges = await prisma.workingHoursRange.count();
+  if (existingRanges === 0) {
+    // Default schedule: Mon–Fri 8–12 & 2–5pm, Sat 9am–1pm, Sun closed.
+    const weekday = [
+      { startMinutes: 8 * 60, endMinutes: 12 * 60 },
+      { startMinutes: 14 * 60, endMinutes: 17 * 60 },
+    ];
+    const saturday = [{ startMinutes: 9 * 60, endMinutes: 13 * 60 }];
+    await prisma.workingHoursRange.createMany({
+      data: [1, 2, 3, 4, 5]
+        .flatMap((dayOfWeek) => weekday.map((r) => ({ dayOfWeek, ...r })))
+        .concat(saturday.map((r) => ({ dayOfWeek: 6, ...r }))),
+    });
+    console.log("Default working hours seeded (Mon–Fri, Sat)");
+  }
 }
 
 main()

@@ -36,3 +36,36 @@ model AdminUser {
   name         String?
   createdAt    DateTime @default(now())
 }
+
+// One row per working time range. A day with no rows is closed.
+model WorkingHoursRange {
+  id           String @id @default(cuid())
+  // 0 = Sunday ... 6 = Saturday
+  dayOfWeek    Int
+  startMinutes Int
+  endMinutes   Int
+
+  @@index([dayOfWeek])
+}
+
+// A period the clinic is unavailable, set by the admin (vacations, a blocked
+// afternoon, etc). startDate/endDate are inclusive calendar days. When
+// startMinutes/endMinutes are null the whole day(s) are blocked; otherwise only
+// that time window is blocked on each day in the range.
+model BlockedPeriod {
+  id           String   @id @default(cuid())
+  startDate    DateTime
+  endDate      DateTime
+  startMinutes Int?
+  endMinutes   Int?
+  reason       String?
+  createdAt    DateTime @default(now())
+
+  @@index([startDate, endDate])
+}
+
+// Singleton row (id is always 1) holding schedule-wide settings.
+model ScheduleSettings {
+  id                  Int @id @default(1)
+  slotDurationMinutes Int @default(30)
+}

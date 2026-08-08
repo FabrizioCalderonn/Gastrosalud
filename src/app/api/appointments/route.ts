@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { parseDateKey, slotsForDayOfWeek, todayDateKey } from "@/lib/schedule";
+import { parseDateKey, todayDateKey } from "@/lib/schedule";
+import { isSlotWithinScheduleAndUnblocked } from "@/lib/scheduling";
 import { createAppointmentSchema } from "@/lib/validation";
 
 export async function POST(req: NextRequest) {
@@ -23,13 +24,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Fecha inválida" }, { status: 400 });
   }
 
-  // Reject past days and slots outside business hours for that weekday.
+  // Reject past days and slots outside business hours / blocked by the admin.
   if (dateKey < todayDateKey()) {
     return NextResponse.json({ error: "No se puede agendar en una fecha pasada" }, { status: 400 });
   }
 
-  const validSlots = slotsForDayOfWeek(date.getUTCDay());
-  if (!validSlots.includes(minutes)) {
+  const available = await isSlotWithinScheduleAndUnblocked(dateKey, minutes);
+  if (!available) {
     return NextResponse.json({ error: "Ese horario no está disponible" }, { status: 400 });
   }
 

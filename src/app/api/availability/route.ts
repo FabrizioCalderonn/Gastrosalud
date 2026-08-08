@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { formatTime, parseDateKey, slotsForDayOfWeek } from "@/lib/schedule";
+import { computeAvailability } from "@/lib/scheduling";
 
 export async function GET(req: NextRequest) {
   const dateKey = req.nextUrl.searchParams.get("date");
@@ -8,27 +7,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Parámetro 'date' inválido" }, { status: 400 });
   }
 
-  let date: Date;
   try {
-    date = parseDateKey(dateKey);
+    const slots = await computeAvailability(dateKey);
+    return NextResponse.json({ date: dateKey, slots });
   } catch {
     return NextResponse.json({ error: "Parámetro 'date' inválido" }, { status: 400 });
   }
-
-  const dayOfWeek = date.getUTCDay();
-  const slotMinutes = slotsForDayOfWeek(dayOfWeek);
-
-  const booked = await prisma.appointment.findMany({
-    where: { date, status: { not: "cancelada" } },
-    select: { minutes: true },
-  });
-  const bookedSet = new Set(booked.map((b) => b.minutes));
-
-  const slots = slotMinutes.map((minutes) => ({
-    minutes,
-    label: formatTime(minutes),
-    booked: bookedSet.has(minutes),
-  }));
-
-  return NextResponse.json({ date: dateKey, slots });
 }
