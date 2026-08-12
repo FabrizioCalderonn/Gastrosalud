@@ -22,7 +22,7 @@ export function Footer() {
           </p>
           <Link
             href="/citas"
-            className="inline-block rounded-full bg-teal px-[26px] py-3.5 font-heading text-sm font-bold text-white transition hover:bg-teal-darker"
+            className="inline-block rounded-full bg-teal px-[26px] py-3.5 font-heading text-sm font-bold text-white transition hover:bg-teal-darker hover:text-white"
           >
             Haz tu cita
           </Link>

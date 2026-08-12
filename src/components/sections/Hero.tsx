@@ -17,7 +17,7 @@ export function Hero() {
         </p>
         <Link
           href="/citas"
-          className="inline-block w-[200px] rounded-full bg-teal px-8 py-4 text-center font-heading text-lg font-bold text-white shadow-[0_10px_24px_rgba(44,166,174,0.35)] transition hover:bg-teal-darker"
+          className="inline-block w-[200px] rounded-full bg-teal px-8 py-4 text-center font-heading text-lg font-bold text-white shadow-[0_10px_24px_rgba(44,166,174,0.35)] transition hover:bg-teal-darker hover:text-white"
         >
           Haz tu cita
         </Link>

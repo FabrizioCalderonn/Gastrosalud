@@ -52,7 +52,7 @@ export function Header() {
       ) : (
         <Link
           href="/citas"
-          className="rounded-full bg-teal px-[26px] py-3 font-heading text-[15px] font-bold text-white shadow-[0_6px_16px_rgba(44,166,174,0.35)] transition hover:bg-teal-darker"
+          className="rounded-full bg-teal px-[26px] py-3 font-heading text-[15px] font-bold text-white shadow-[0_6px_16px_rgba(44,166,174,0.35)] transition hover:bg-teal-darker hover:text-white"
         >
           Haz tu cita
         </Link>
