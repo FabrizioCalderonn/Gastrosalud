@@ -61,26 +61,28 @@
   --font-body: var(--font-nunito);
 }
 
-body {
-  background: var(--color-cream);
-  color: var(--color-body);
-  font-family: var(--font-body), sans-serif;
-}
+@layer base {
+  body {
+    background: var(--color-cream);
+    color: var(--color-body);
+    font-family: var(--font-body), sans-serif;
+  }
 
-a {
-  color: var(--color-teal-dark);
-  text-decoration: none;
-}
-a:hover {
-  color: var(--color-teal-darker);
-}
+  a {
+    color: var(--color-teal-dark);
+    text-decoration: none;
+  }
+  a:hover {
+    color: var(--color-teal-darker);
+  }
 
-::selection {
-  background: var(--color-teal-tint);
-  color: var(--color-teal-darker);
-}
+  ::selection {
+    background: var(--color-teal-tint);
+    color: var(--color-teal-darker);
+  }
 
-:focus-visible {
-  outline: 2px solid var(--color-teal);
-  outline-offset: 2px;
+  :focus-visible {
+    outline: 2px solid var(--color-teal);
+    outline-offset: 2px;
+  }
 }
