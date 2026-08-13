@@ -69,3 +69,14 @@ model ScheduleSettings {
   id                  Int @id @default(1)
   slotDurationMinutes Int @default(30)
 }
+
+// Singleton row (id is always 1) holding the editable subject/body used for
+// appointment confirm/cancel emails. Bodies support placeholders
+// ({{nombre}}, {{fecha}}, {{hora}}) substituted at send time.
+model EmailTemplate {
+  id             Int    @id @default(1)
+  confirmSubject String @default("Tu cita en GastroSalud fue confirmada")
+  confirmBody    String @default("Hola {{nombre}},\n\nTu cita en GastroSalud quedó confirmada para el {{fecha}} a las {{hora}}.\n\n¡Te esperamos!")
+  cancelSubject  String @default("Tu cita en GastroSalud fue cancelada")
+  cancelBody     String @default("Hola {{nombre}},\n\nLamentamos informarte que tu cita para el {{fecha}} a las {{hora}} fue cancelada.\n\nPara reprogramar, contáctanos o agenda de nuevo en el sitio web.")
+}

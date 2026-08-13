@@ -49,3 +49,12 @@ export const createBlockedPeriodSchema = z
   });
 
 export type CreateBlockedPeriodInput = z.infer<typeof createBlockedPeriodSchema>;
+
+export const updateEmailTemplateSchema = z.object({
+  confirmSubject: z.string().trim().min(1, "El asunto no puede estar vacío").max(200),
+  confirmBody: z.string().trim().min(1, "El mensaje no puede estar vacío").max(4000),
+  cancelSubject: z.string().trim().min(1, "El asunto no puede estar vacío").max(200),
+  cancelBody: z.string().trim().min(1, "El mensaje no puede estar vacío").max(4000),
+});
+
+export type UpdateEmailTemplateInput = z.infer<typeof updateEmailTemplateSchema>;

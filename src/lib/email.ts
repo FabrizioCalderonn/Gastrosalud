@@ -1,11 +1,36 @@
 import { Resend } from "resend";
+import { prisma } from "@/lib/prisma";
 import { formatDateFull } from "@/lib/format";
 import { formatTime } from "@/lib/schedule";
 
-const CLINIC_NAME = "GastroSalud — Dra. Angelica Salgado";
-const CLINIC_PHONE = "7867 9475";
-const CLINIC_ADDRESS =
-  "25 Calle Poniente entre 8ª y 10ª av. Sur #33, Centro Médico de Santa Ana, Clínica 24, Santa Ana, El Salvador";
+export const EMAIL_PLACEHOLDERS = ["nombre", "fecha", "hora"] as const;
+
+const DEFAULT_TEMPLATE = {
+  confirmSubject: "Tu cita en GastroSalud fue confirmada",
+  confirmBody:
+    "Hola {{nombre}},\n\nTu cita en GastroSalud quedó confirmada para el {{fecha}} a las {{hora}}.\n\n¡Te esperamos!",
+  cancelSubject: "Tu cita en GastroSalud fue cancelada",
+  cancelBody:
+    "Hola {{nombre}},\n\nLamentamos informarte que tu cita para el {{fecha}} a las {{hora}} fue cancelada.\n\nPara reprogramar, contáctanos o agenda de nuevo en el sitio web.",
+};
+
+export async function getEmailTemplate() {
+  const row = await prisma.emailTemplate.findUnique({ where: { id: 1 } });
+  return {
+    confirmSubject: row?.confirmSubject ?? DEFAULT_TEMPLATE.confirmSubject,
+    confirmBody: row?.confirmBody ?? DEFAULT_TEMPLATE.confirmBody,
+    cancelSubject: row?.cancelSubject ?? DEFAULT_TEMPLATE.cancelSubject,
+    cancelBody: row?.cancelBody ?? DEFAULT_TEMPLATE.cancelBody,
+  };
+}
+
+function fillPlaceholders(text: string, vars: Record<string, string>): string {
+  let out = text;
+  for (const [key, value] of Object.entries(vars)) {
+    out = out.replaceAll(`{{${key}}}`, value);
+  }
+  return out;
+}
 
 function getResend() {
   const apiKey = process.env.RESEND_API_KEY;
@@ -32,25 +57,24 @@ export async function sendAppointmentStatusEmail(
 
   const dateLabel = formatDateFull(input.dateKey);
   const timeLabel = formatTime(input.minutes);
+  const template = await getEmailTemplate();
 
-  const subject =
-    status === "confirmada"
-      ? "Tu cita en GastroSalud fue confirmada"
-      : "Tu cita en GastroSalud fue cancelada";
+  const vars = {
+    nombre: input.patientName,
+    fecha: dateLabel,
+    hora: timeLabel,
+  };
 
-  const html =
-    status === "confirmada"
-      ? `<p>Hola ${escapeHtml(input.patientName)},</p>
-         <p>Tu cita en <strong>${CLINIC_NAME}</strong> quedó <strong>confirmada</strong> para el
-         ${escapeHtml(dateLabel)} a las ${escapeHtml(timeLabel)}.</p>
-         <p>Dirección: ${escapeHtml(CLINIC_ADDRESS)}</p>
-         <p>Cualquier duda, llámanos al ${escapeHtml(CLINIC_PHONE)}.</p>
-         <p>¡Te esperamos!</p>`
-      : `<p>Hola ${escapeHtml(input.patientName)},</p>
-         <p>Lamentamos informarte que tu cita en <strong>${CLINIC_NAME}</strong> para el
-         ${escapeHtml(dateLabel)} a las ${escapeHtml(timeLabel)} fue <strong>cancelada</strong>.</p>
-         <p>Para reprogramar, contáctanos al ${escapeHtml(CLINIC_PHONE)} o agenda de nuevo en el sitio web.</p>
-         <p>Disculpa las molestias.</p>`;
+  const rawSubject = status === "confirmada" ? template.confirmSubject : template.cancelSubject;
+  const rawBody = status === "confirmada" ? template.confirmBody : template.cancelBody;
+
+  const subject = fillPlaceholders(rawSubject, vars);
+  const bodyHtml = fillPlaceholders(escapeHtml(rawBody), {
+    nombre: escapeHtml(vars.nombre),
+    fecha: escapeHtml(vars.fecha),
+    hora: escapeHtml(vars.hora),
+  }).replaceAll("\n", "<br/>");
+  const html = `<p>${bodyHtml}</p>`;
 
   try {
     const result = await resend.emails.send({
