@@ -31,6 +31,17 @@ function messageForStatus(
   }
 }
 
+/** Link opened by the PATIENT to message the clinic's WhatsApp, prefilled from their side. */
+export function buildPatientToClinicWhatsAppLink(input: {
+  patientName: string;
+  dateKey: string;
+  minutes: number;
+}): string {
+  const clinicNumber = normalizePhoneForWhatsApp(CLINIC_PHONE);
+  const message = `Hola, soy ${input.patientName}. Tengo una cita el ${formatDateFull(input.dateKey)} a las ${formatTime(input.minutes)} y quisiera escribirles por este medio.`;
+  return `https://wa.me/${clinicNumber}?text=${encodeURIComponent(message)}`;
+}
+
 export function buildWhatsAppLink(input: {
   phone: string;
   patientName: string;

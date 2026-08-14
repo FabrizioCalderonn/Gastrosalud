@@ -21,6 +21,11 @@ model Appointment {
   // "pendiente" | "confirmada" | "cancelada"
   status      String   @default("pendiente")
   notes       String?
+  // Token for the patient's self-service link (/mi-cita/[token]). Nullable
+  // because appointments created before this field existed have no token.
+  manageToken String?  @unique
+  // Set once the 24h-before reminder email has been sent, to avoid duplicates.
+  reminderSentAt DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -79,4 +84,6 @@ model EmailTemplate {
   confirmBody    String @default("Hola {{nombre}},\n\nTu cita en GastroSalud quedó confirmada para el {{fecha}} a las {{hora}}.\n\n¡Te esperamos!")
   cancelSubject  String @default("Tu cita en GastroSalud fue cancelada")
   cancelBody     String @default("Hola {{nombre}},\n\nLamentamos informarte que tu cita para el {{fecha}} a las {{hora}} fue cancelada.\n\nPara reprogramar, contáctanos o agenda de nuevo en el sitio web.")
+  reminderSubject String @default("Recordatorio: tu cita en GastroSalud es mañana")
+  reminderBody    String @default("Hola {{nombre}},\n\nTe recordamos tu cita en GastroSalud mañana {{fecha}} a las {{hora}}.\n\n¡Te esperamos!")
 }

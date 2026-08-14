@@ -7,6 +7,8 @@ type Template = {
   confirmBody: string;
   cancelSubject: string;
   cancelBody: string;
+  reminderSubject: string;
+  reminderBody: string;
 };
 
 export function EmailTemplateEditor({ initialTemplate }: { initialTemplate: Template }) {
@@ -44,7 +46,8 @@ export function EmailTemplateEditor({ initialTemplate }: { initialTemplate: Temp
     <div className="rounded-2xl border border-border bg-surface p-5">
       <h2 className="mb-1 font-heading text-lg font-bold text-ink">Mensajes de correo</h2>
       <p className="mb-5 text-sm text-muted">
-        Se envían automáticamente al confirmar o cancelar una cita. Puedes usar{" "}
+        Se envían automáticamente al confirmar o cancelar una cita, y el recordatorio se envía solo
+        (24h antes, para citas confirmadas). Puedes usar{" "}
         <code className="rounded bg-cream px-1 py-0.5 text-xs">{"{{nombre}}"}</code>,{" "}
         <code className="rounded bg-cream px-1 py-0.5 text-xs">{"{{fecha}}"}</code> y{" "}
         <code className="rounded bg-cream px-1 py-0.5 text-xs">{"{{hora}}"}</code> en el mensaje; se
@@ -83,6 +86,24 @@ export function EmailTemplateEditor({ initialTemplate }: { initialTemplate: Temp
           <textarea
             value={template.cancelBody}
             onChange={(e) => update("cancelBody", e.target.value)}
+            rows={5}
+            className="w-full rounded-lg border-2 border-border-strong px-3 py-2 text-sm"
+          />
+        </div>
+
+        <div className="border-t border-border pt-4">
+          <div className="mb-2 font-heading text-sm font-bold text-ink">Recordatorio (24h antes)</div>
+          <label className="mb-1 block text-xs font-bold text-muted-2">Asunto</label>
+          <input
+            type="text"
+            value={template.reminderSubject}
+            onChange={(e) => update("reminderSubject", e.target.value)}
+            className="mb-3 w-full rounded-lg border-2 border-border-strong px-3 py-2 text-sm"
+          />
+          <label className="mb-1 block text-xs font-bold text-muted-2">Mensaje</label>
+          <textarea
+            value={template.reminderBody}
+            onChange={(e) => update("reminderBody", e.target.value)}
             rows={5}
             className="w-full rounded-lg border-2 border-border-strong px-3 py-2 text-sm"
           />

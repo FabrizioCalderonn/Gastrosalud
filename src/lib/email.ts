@@ -2,6 +2,7 @@ import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
 import { formatDateFull } from "@/lib/format";
 import { formatTime } from "@/lib/schedule";
+import { buildPatientToClinicWhatsAppLink } from "@/lib/whatsapp";
 
 export const EMAIL_PLACEHOLDERS = ["nombre", "fecha", "hora"] as const;
 
@@ -12,6 +13,9 @@ const DEFAULT_TEMPLATE = {
   cancelSubject: "Tu cita en GastroSalud fue cancelada",
   cancelBody:
     "Hola {{nombre}},\n\nLamentamos informarte que tu cita para el {{fecha}} a las {{hora}} fue cancelada.\n\nPara reprogramar, contáctanos o agenda de nuevo en el sitio web.",
+  reminderSubject: "Recordatorio: tu cita en GastroSalud es mañana",
+  reminderBody:
+    "Hola {{nombre}},\n\nTe recordamos tu cita en GastroSalud mañana {{fecha}} a las {{hora}}.\n\n¡Te esperamos!",
 };
 
 export async function getEmailTemplate() {
@@ -21,6 +25,8 @@ export async function getEmailTemplate() {
     confirmBody: row?.confirmBody ?? DEFAULT_TEMPLATE.confirmBody,
     cancelSubject: row?.cancelSubject ?? DEFAULT_TEMPLATE.cancelSubject,
     cancelBody: row?.cancelBody ?? DEFAULT_TEMPLATE.cancelBody,
+    reminderSubject: row?.reminderSubject ?? DEFAULT_TEMPLATE.reminderSubject,
+    reminderBody: row?.reminderBody ?? DEFAULT_TEMPLATE.reminderBody,
   };
 }
 
@@ -43,11 +49,46 @@ type AppointmentEmailInput = {
   email: string;
   dateKey: string;
   minutes: number;
+  manageToken?: string | null;
 };
 
-export async function sendAppointmentStatusEmail(
+/** "Gestiona tu cita" link + WhatsApp button appended below the message body. */
+function buildFooterHtml(input: AppointmentEmailInput): string {
+  const parts: string[] = [];
+  if (input.manageToken) {
+    const siteUrl = process.env.SITE_URL ?? "https://gastrosaludsv.com";
+    const manageUrl = `${siteUrl}/mi-cita/${input.manageToken}`;
+    parts.push(`<p><a href="${manageUrl}">Gestionar mi cita</a></p>`);
+  }
+  const whatsappUrl = buildPatientToClinicWhatsAppLink({
+    patientName: input.patientName,
+    dateKey: input.dateKey,
+    minutes: input.minutes,
+  });
+  parts.push(`<p><a href="${whatsappUrl}">Escribirnos por WhatsApp</a></p>`);
+  return parts.join("\n");
+}
+
+function renderEmailHtml(rawSubject: string, rawBody: string, input: AppointmentEmailInput) {
+  const vars = {
+    nombre: input.patientName,
+    fecha: formatDateFull(input.dateKey),
+    hora: formatTime(input.minutes),
+  };
+  const subject = fillPlaceholders(rawSubject, vars);
+  const bodyHtml = fillPlaceholders(escapeHtml(rawBody), {
+    nombre: escapeHtml(vars.nombre),
+    fecha: escapeHtml(vars.fecha),
+    hora: escapeHtml(vars.hora),
+  }).replaceAll("\n", "<br/>");
+  const html = `<p>${bodyHtml}</p>${buildFooterHtml(input)}`;
+  return { subject, html };
+}
+
+async function sendEmail(
   input: AppointmentEmailInput,
-  status: "confirmada" | "cancelada",
+  rawSubject: string,
+  rawBody: string,
 ): Promise<{ sent: boolean; error?: string }> {
   const resend = getResend();
   const from = process.env.EMAIL_FROM;
@@ -55,26 +96,7 @@ export async function sendAppointmentStatusEmail(
     return { sent: false, error: "Envío de correo no configurado (falta RESEND_API_KEY o EMAIL_FROM)" };
   }
 
-  const dateLabel = formatDateFull(input.dateKey);
-  const timeLabel = formatTime(input.minutes);
-  const template = await getEmailTemplate();
-
-  const vars = {
-    nombre: input.patientName,
-    fecha: dateLabel,
-    hora: timeLabel,
-  };
-
-  const rawSubject = status === "confirmada" ? template.confirmSubject : template.cancelSubject;
-  const rawBody = status === "confirmada" ? template.confirmBody : template.cancelBody;
-
-  const subject = fillPlaceholders(rawSubject, vars);
-  const bodyHtml = fillPlaceholders(escapeHtml(rawBody), {
-    nombre: escapeHtml(vars.nombre),
-    fecha: escapeHtml(vars.fecha),
-    hora: escapeHtml(vars.hora),
-  }).replaceAll("\n", "<br/>");
-  const html = `<p>${bodyHtml}</p>`;
+  const { subject, html } = renderEmailHtml(rawSubject, rawBody, input);
 
   try {
     const result = await resend.emails.send({
@@ -88,6 +110,23 @@ export async function sendAppointmentStatusEmail(
   } catch (err) {
     return { sent: false, error: err instanceof Error ? err.message : "Error desconocido" };
   }
+}
+
+export async function sendAppointmentStatusEmail(
+  input: AppointmentEmailInput,
+  status: "confirmada" | "cancelada",
+): Promise<{ sent: boolean; error?: string }> {
+  const template = await getEmailTemplate();
+  const rawSubject = status === "confirmada" ? template.confirmSubject : template.cancelSubject;
+  const rawBody = status === "confirmada" ? template.confirmBody : template.cancelBody;
+  return sendEmail(input, rawSubject, rawBody);
+}
+
+export async function sendAppointmentReminderEmail(
+  input: AppointmentEmailInput,
+): Promise<{ sent: boolean; error?: string }> {
+  const template = await getEmailTemplate();
+  return sendEmail(input, template.reminderSubject, template.reminderBody);
 }
 
 function escapeHtml(value: string): string {

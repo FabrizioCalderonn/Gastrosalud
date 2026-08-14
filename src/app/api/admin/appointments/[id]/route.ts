@@ -33,6 +33,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         email: appointment.email,
         dateKey: toDateKey(appointment.date),
         minutes: appointment.minutes,
+        manageToken: appointment.manageToken,
       },
       nextStatus,
     );

@@ -29,6 +29,21 @@ export function toDateKey(date: Date): string {
   ).padStart(2, "0")}`;
 }
 
+/**
+ * Converts a clinic-local (dateKey, minutes) instant into the real UTC Date it
+ * represents. El Salvador is UTC-6 year-round (no DST), so this is a fixed
+ * offset — safe as long as CLINIC_TIMEZONE stays "America/El_Salvador".
+ */
+export function dateKeyAndMinutesToUtcDate(dateKey: string, minutes: number): Date {
+  const localMidnightUtc = parseDateKey(dateKey);
+  return new Date(localMidnightUtc.getTime() + (minutes + 6 * 60) * 60 * 1000);
+}
+
+/** Whether the current moment is within `cutoffMs` of the clinic-local (dateKey, minutes) instant. */
+export function isWithinCutoff(dateKey: string, minutes: number, cutoffMs: number): boolean {
+  return Date.now() >= dateKeyAndMinutesToUtcDate(dateKey, minutes).getTime() - cutoffMs;
+}
+
 export function formatTime(minutes: number): string {
   const h = Math.floor(minutes / 60);
   const mi = minutes % 60;

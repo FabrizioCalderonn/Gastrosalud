@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
         email,
         visitType,
         status: "pendiente",
+        manageToken: crypto.randomUUID(),
       },
     });
     return NextResponse.json({ appointment }, { status: 201 });

@@ -55,6 +55,19 @@ export const updateEmailTemplateSchema = z.object({
   confirmBody: z.string().trim().min(1, "El mensaje no puede estar vacío").max(4000),
   cancelSubject: z.string().trim().min(1, "El asunto no puede estar vacío").max(200),
   cancelBody: z.string().trim().min(1, "El mensaje no puede estar vacío").max(4000),
+  reminderSubject: z.string().trim().min(1, "El asunto no puede estar vacío").max(200),
+  reminderBody: z.string().trim().min(1, "El mensaje no puede estar vacío").max(4000),
 });
 
 export type UpdateEmailTemplateInput = z.infer<typeof updateEmailTemplateSchema>;
+
+export const manageAppointmentSchema = z.discriminatedUnion("action", [
+  z.object({
+    action: z.literal("reschedule"),
+    dateKey: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida"),
+    minutes: z.number().int().min(0).max(24 * 60),
+  }),
+  z.object({ action: z.literal("cancel") }),
+]);
+
+export type ManageAppointmentInput = z.infer<typeof manageAppointmentSchema>;
