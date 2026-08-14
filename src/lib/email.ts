@@ -16,6 +16,9 @@ const DEFAULT_TEMPLATE = {
   reminderSubject: "Recordatorio: tu cita en GastroSalud es mañana",
   reminderBody:
     "Hola {{nombre}},\n\nTe recordamos tu cita en GastroSalud mañana {{fecha}} a las {{hora}}.\n\n¡Te esperamos!",
+  patientCancelSubject: "Tu cita en GastroSalud fue cancelada",
+  patientCancelBody:
+    "Hola {{nombre}},\n\nConfirmamos que cancelaste tu cita del {{fecha}} a las {{hora}}.\n\nSi deseas agendar una nueva, visita el sitio web cuando gustes.",
 };
 
 export async function getEmailTemplate() {
@@ -27,6 +30,8 @@ export async function getEmailTemplate() {
     cancelBody: row?.cancelBody ?? DEFAULT_TEMPLATE.cancelBody,
     reminderSubject: row?.reminderSubject ?? DEFAULT_TEMPLATE.reminderSubject,
     reminderBody: row?.reminderBody ?? DEFAULT_TEMPLATE.reminderBody,
+    patientCancelSubject: row?.patientCancelSubject ?? DEFAULT_TEMPLATE.patientCancelSubject,
+    patientCancelBody: row?.patientCancelBody ?? DEFAULT_TEMPLATE.patientCancelBody,
   };
 }
 
@@ -127,6 +132,14 @@ export async function sendAppointmentReminderEmail(
 ): Promise<{ sent: boolean; error?: string }> {
   const template = await getEmailTemplate();
   return sendEmail(input, template.reminderSubject, template.reminderBody);
+}
+
+/** Cancellation confirmation sent when the PATIENT cancels their own appointment (vs. the clinic cancelling). */
+export async function sendPatientCancelEmail(
+  input: AppointmentEmailInput,
+): Promise<{ sent: boolean; error?: string }> {
+  const template = await getEmailTemplate();
+  return sendEmail(input, template.patientCancelSubject, template.patientCancelBody);
 }
 
 function escapeHtml(value: string): string {

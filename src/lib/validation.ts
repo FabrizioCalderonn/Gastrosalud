@@ -27,6 +27,7 @@ const timeRangeSchema = z
 
 export const updateWorkingHoursSchema = z.object({
   slotDurationMinutes: z.number().int().min(5).max(240),
+  minLeadMinutes: z.number().int().min(0).max(7 * 24 * 60),
   days: z.record(z.string(), z.array(timeRangeSchema)),
 });
 
@@ -57,6 +58,8 @@ export const updateEmailTemplateSchema = z.object({
   cancelBody: z.string().trim().min(1, "El mensaje no puede estar vacío").max(4000),
   reminderSubject: z.string().trim().min(1, "El asunto no puede estar vacío").max(200),
   reminderBody: z.string().trim().min(1, "El mensaje no puede estar vacío").max(4000),
+  patientCancelSubject: z.string().trim().min(1, "El asunto no puede estar vacío").max(200),
+  patientCancelBody: z.string().trim().min(1, "El mensaje no puede estar vacío").max(4000),
 });
 
 export type UpdateEmailTemplateInput = z.infer<typeof updateEmailTemplateSchema>;

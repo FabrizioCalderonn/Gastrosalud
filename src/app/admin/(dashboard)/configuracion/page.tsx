@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { toDateKey } from "@/lib/schedule";
-import { getSlotDurationMinutes, getWorkingRangesByDay } from "@/lib/scheduling";
+import { getMinLeadMinutes, getSlotDurationMinutes, getWorkingRangesByDay } from "@/lib/scheduling";
 import { getEmailTemplate } from "@/lib/email";
 import { WorkingHoursEditor } from "@/components/admin/WorkingHoursEditor";
 import { BlockedPeriodsManager } from "@/components/admin/BlockedPeriodsManager";
@@ -9,8 +9,9 @@ import { EmailTemplateEditor } from "@/components/admin/EmailTemplateEditor";
 export const dynamic = "force-dynamic";
 
 export default async function ConfiguracionPage() {
-  const [slotDurationMinutes, days, periods, emailTemplate] = await Promise.all([
+  const [slotDurationMinutes, minLeadMinutes, days, periods, emailTemplate] = await Promise.all([
     getSlotDurationMinutes(),
+    getMinLeadMinutes(),
     getWorkingRangesByDay(),
     prisma.blockedPeriod.findMany({ orderBy: { startDate: "desc" } }),
     getEmailTemplate(),
@@ -27,7 +28,11 @@ export default async function ConfiguracionPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <WorkingHoursEditor initialDays={days} initialSlotDuration={slotDurationMinutes} />
+      <WorkingHoursEditor
+        initialDays={days}
+        initialSlotDuration={slotDurationMinutes}
+        initialMinLeadMinutes={minLeadMinutes}
+      />
       <BlockedPeriodsManager initialPeriods={initialPeriods} />
       <EmailTemplateEditor initialTemplate={emailTemplate} />
     </div>

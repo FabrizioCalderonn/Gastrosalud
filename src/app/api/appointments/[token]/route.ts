@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { isWithinCutoff, parseDateKey, toDateKey } from "@/lib/schedule";
 import { isSlotWithinScheduleAndUnblocked } from "@/lib/scheduling";
 import { manageAppointmentSchema } from "@/lib/validation";
-import { sendAppointmentStatusEmail } from "@/lib/email";
+import { sendPatientCancelEmail } from "@/lib/email";
 
 const RESCHEDULE_CUTOFF_MS = 24 * 60 * 60 * 1000;
 
@@ -57,16 +57,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ to
       where: { id: appointment.id },
       data: { status: "cancelada" },
     });
-    const email = await sendAppointmentStatusEmail(
-      {
-        patientName: updated.patientName,
-        email: updated.email,
-        dateKey: toDateKey(updated.date),
-        minutes: updated.minutes,
-        manageToken: updated.manageToken,
-      },
-      "cancelada",
-    );
+    const email = await sendPatientCancelEmail({
+      patientName: updated.patientName,
+      email: updated.email,
+      dateKey: toDateKey(updated.date),
+      minutes: updated.minutes,
+      manageToken: updated.manageToken,
+    });
     return NextResponse.json({ appointment: updated, email });
   }
 

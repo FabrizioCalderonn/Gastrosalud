@@ -18,12 +18,30 @@ export async function PUT(req: NextRequest) {
     );
   }
 
-  const { confirmSubject, confirmBody, cancelSubject, cancelBody, reminderSubject, reminderBody } =
-    parsed.data;
+  const {
+    confirmSubject,
+    confirmBody,
+    cancelSubject,
+    cancelBody,
+    reminderSubject,
+    reminderBody,
+    patientCancelSubject,
+    patientCancelBody,
+  } = parsed.data;
+  const data = {
+    confirmSubject,
+    confirmBody,
+    cancelSubject,
+    cancelBody,
+    reminderSubject,
+    reminderBody,
+    patientCancelSubject,
+    patientCancelBody,
+  };
   await prisma.emailTemplate.upsert({
     where: { id: 1 },
-    update: { confirmSubject, confirmBody, cancelSubject, cancelBody, reminderSubject, reminderBody },
-    create: { id: 1, confirmSubject, confirmBody, cancelSubject, cancelBody, reminderSubject, reminderBody },
+    update: data,
+    create: { id: 1, ...data },
   });
 
   return NextResponse.json({ ok: true });

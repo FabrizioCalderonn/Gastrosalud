@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getSlotDurationMinutes, getWorkingRangesByDay } from "@/lib/scheduling";
+import { getMinLeadMinutes, getSlotDurationMinutes, getWorkingRangesByDay } from "@/lib/scheduling";
 import { updateWorkingHoursSchema } from "@/lib/validation";
 
 export async function GET() {
-  const [slotDurationMinutes, days] = await Promise.all([
+  const [slotDurationMinutes, minLeadMinutes, days] = await Promise.all([
     getSlotDurationMinutes(),
+    getMinLeadMinutes(),
     getWorkingRangesByDay(),
   ]);
-  return NextResponse.json({ slotDurationMinutes, days });
+  return NextResponse.json({ slotDurationMinutes, minLeadMinutes, days });
 }
 
 export async function PUT(req: NextRequest) {
@@ -21,7 +22,7 @@ export async function PUT(req: NextRequest) {
     );
   }
 
-  const { slotDurationMinutes, days } = parsed.data;
+  const { slotDurationMinutes, minLeadMinutes, days } = parsed.data;
   const rows = Object.entries(days).flatMap(([dayOfWeek, ranges]) =>
     ranges.map((r) => ({ dayOfWeek: Number(dayOfWeek), startMinutes: r.startMinutes, endMinutes: r.endMinutes })),
   );
@@ -36,8 +37,8 @@ export async function PUT(req: NextRequest) {
   await prisma.$transaction([
     prisma.scheduleSettings.upsert({
       where: { id: 1 },
-      update: { slotDurationMinutes },
-      create: { id: 1, slotDurationMinutes },
+      update: { slotDurationMinutes, minLeadMinutes },
+      create: { id: 1, slotDurationMinutes, minLeadMinutes },
     }),
     prisma.workingHoursRange.deleteMany({}),
     ...(rows.length ? [prisma.workingHoursRange.createMany({ data: rows })] : []),

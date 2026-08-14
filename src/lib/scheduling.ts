@@ -1,12 +1,19 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
-import { formatTime, parseDateKey, toDateKey, todayDateKey } from "@/lib/schedule";
+import { formatTime, isWithinCutoff, parseDateKey, toDateKey, todayDateKey } from "@/lib/schedule";
 
 const DEFAULT_SLOT_DURATION = 30;
+const DEFAULT_MIN_LEAD_MINUTES = 60;
 
 export async function getSlotDurationMinutes(): Promise<number> {
   const settings = await prisma.scheduleSettings.findUnique({ where: { id: 1 } });
   return settings?.slotDurationMinutes ?? DEFAULT_SLOT_DURATION;
+}
+
+/** Minimum notice (in minutes) required before a slot's start time to still book/reschedule it. */
+export async function getMinLeadMinutes(): Promise<number> {
+  const settings = await prisma.scheduleSettings.findUnique({ where: { id: 1 } });
+  return settings?.minLeadMinutes ?? DEFAULT_MIN_LEAD_MINUTES;
 }
 
 export type WorkingRange = { startMinutes: number; endMinutes: number };
@@ -70,8 +77,9 @@ export type AvailabilitySlot = { minutes: number; label: string; booked: boolean
 
 export async function computeAvailability(dateKey: string): Promise<AvailabilitySlot[]> {
   const date = parseDateKey(dateKey);
-  const [durationMinutes, rangesByDay, appointments, blockedPeriods] = await Promise.all([
+  const [durationMinutes, minLeadMinutes, rangesByDay, appointments, blockedPeriods] = await Promise.all([
     getSlotDurationMinutes(),
+    getMinLeadMinutes(),
     getWorkingRangesByDay(),
     prisma.appointment.findMany({ where: { date, status: { not: "cancelada" } }, select: { minutes: true } }),
     getBlockedPeriodsInRange(date, date),
@@ -83,21 +91,26 @@ export async function computeAvailability(dateKey: string): Promise<Availability
   return slotMinutes.map((minutes) => ({
     minutes,
     label: formatTime(minutes),
-    booked: bookedSet.has(minutes) || isMinuteBlockedBy(date, minutes, blockedPeriods),
+    booked:
+      bookedSet.has(minutes) ||
+      isMinuteBlockedBy(date, minutes, blockedPeriods) ||
+      isWithinCutoff(dateKey, minutes, minLeadMinutes * 60 * 1000),
   }));
 }
 
-/** Whether a specific slot can currently be booked (working hours + not blocked; does not check for an existing appointment). */
+/** Whether a specific slot can currently be booked (working hours + not blocked + enough lead time; does not check for an existing appointment). */
 export async function isSlotWithinScheduleAndUnblocked(dateKey: string, minutes: number): Promise<boolean> {
   const date = parseDateKey(dateKey);
-  const [durationMinutes, rangesByDay, blockedPeriods] = await Promise.all([
+  const [durationMinutes, minLeadMinutes, rangesByDay, blockedPeriods] = await Promise.all([
     getSlotDurationMinutes(),
+    getMinLeadMinutes(),
     getWorkingRangesByDay(),
     getBlockedPeriodsInRange(date, date),
   ]);
   const validSlots = rangesToSlots(rangesByDay[date.getUTCDay()] ?? [], durationMinutes);
   if (!validSlots.includes(minutes)) return false;
-  return !isMinuteBlockedBy(date, minutes, blockedPeriods);
+  if (isMinuteBlockedBy(date, minutes, blockedPeriods)) return false;
+  return !isWithinCutoff(dateKey, minutes, minLeadMinutes * 60 * 1000);
 }
 
 /** Next `count` bookable calendar days (has working hours and isn't fully blocked), starting today. */

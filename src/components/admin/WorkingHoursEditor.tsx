@@ -26,12 +26,15 @@ function timeToMinutes(t: string): number {
 export function WorkingHoursEditor({
   initialDays,
   initialSlotDuration,
+  initialMinLeadMinutes,
 }: {
   initialDays: Record<number, WorkingRange[]>;
   initialSlotDuration: number;
+  initialMinLeadMinutes: number;
 }) {
   const [days, setDays] = useState(initialDays);
   const [slotDuration, setSlotDuration] = useState(initialSlotDuration);
+  const [minLeadMinutes, setMinLeadMinutes] = useState(initialMinLeadMinutes);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "error"; text: string } | null>(null);
 
@@ -60,7 +63,7 @@ export function WorkingHoursEditor({
       const res = await fetch("/api/admin/settings/working-hours", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slotDurationMinutes: slotDuration, days }),
+        body: JSON.stringify({ slotDurationMinutes: slotDuration, minLeadMinutes, days }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
@@ -82,17 +85,35 @@ export function WorkingHoursEditor({
         Define los días y horas en que se pueden agendar citas. Un día sin horarios queda cerrado.
       </p>
 
-      <div className="mb-5">
-        <label className="mb-1 block text-xs font-bold text-muted-2">Duración de cada cita (minutos)</label>
-        <input
-          type="number"
-          min={5}
-          max={240}
-          step={5}
-          value={slotDuration}
-          onChange={(e) => setSlotDuration(Number(e.target.value))}
-          className="w-28 rounded-lg border-2 border-border-strong px-3 py-2 text-sm"
-        />
+      <div className="mb-5 flex flex-wrap gap-6">
+        <div>
+          <label className="mb-1 block text-xs font-bold text-muted-2">Duración de cada cita (minutos)</label>
+          <input
+            type="number"
+            min={5}
+            max={240}
+            step={5}
+            value={slotDuration}
+            onChange={(e) => setSlotDuration(Number(e.target.value))}
+            className="w-28 rounded-lg border-2 border-border-strong px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-bold text-muted-2">
+            Anticipación mínima para agendar/reprogramar (minutos)
+          </label>
+          <input
+            type="number"
+            min={0}
+            step={15}
+            value={minLeadMinutes}
+            onChange={(e) => setMinLeadMinutes(Number(e.target.value))}
+            className="w-28 rounded-lg border-2 border-border-strong px-3 py-2 text-sm"
+          />
+          <p className="mt-1 text-xs text-faint">
+            Ej. 60 = ya no se puede agendar un horario con menos de 1 hora de anticipación.
+          </p>
+        </div>
       </div>
 
       <div className="flex flex-col gap-4">

@@ -73,6 +73,8 @@ model BlockedPeriod {
 model ScheduleSettings {
   id                  Int @id @default(1)
   slotDurationMinutes Int @default(30)
+  // Minimum notice required to book/reschedule a slot, in minutes before its start.
+  minLeadMinutes      Int @default(60)
 }
 
 // Singleton row (id is always 1) holding the editable subject/body used for
@@ -86,4 +88,8 @@ model EmailTemplate {
   cancelBody     String @default("Hola {{nombre}},\n\nLamentamos informarte que tu cita para el {{fecha}} a las {{hora}} fue cancelada.\n\nPara reprogramar, contáctanos o agenda de nuevo en el sitio web.")
   reminderSubject String @default("Recordatorio: tu cita en GastroSalud es mañana")
   reminderBody    String @default("Hola {{nombre}},\n\nTe recordamos tu cita en GastroSalud mañana {{fecha}} a las {{hora}}.\n\n¡Te esperamos!")
+  // Sent when the PATIENT cancels their own appointment via /mi-cita/[token].
+  // cancelSubject/cancelBody above are used when the clinic cancels from /admin.
+  patientCancelSubject String @default("Tu cita en GastroSalud fue cancelada")
+  patientCancelBody    String @default("Hola {{nombre}},\n\nConfirmamos que cancelaste tu cita del {{fecha}} a las {{hora}}.\n\nSi deseas agendar una nueva, visita el sitio web cuando gustes.")
 }

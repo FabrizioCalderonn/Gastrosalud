@@ -9,6 +9,8 @@ type Template = {
   cancelBody: string;
   reminderSubject: string;
   reminderBody: string;
+  patientCancelSubject: string;
+  patientCancelBody: string;
 };
 
 export function EmailTemplateEditor({ initialTemplate }: { initialTemplate: Template }) {
@@ -74,7 +76,10 @@ export function EmailTemplateEditor({ initialTemplate }: { initialTemplate: Temp
         </div>
 
         <div className="border-t border-border pt-4">
-          <div className="mb-2 font-heading text-sm font-bold text-ink">Cita cancelada</div>
+          <div className="mb-2 font-heading text-sm font-bold text-ink">Cita cancelada por la clínica</div>
+          <p className="mb-2 text-xs text-faint">
+            Se envía cuando tú cancelas una cita desde el panel de citas.
+          </p>
           <label className="mb-1 block text-xs font-bold text-muted-2">Asunto</label>
           <input
             type="text"
@@ -86,6 +91,28 @@ export function EmailTemplateEditor({ initialTemplate }: { initialTemplate: Temp
           <textarea
             value={template.cancelBody}
             onChange={(e) => update("cancelBody", e.target.value)}
+            rows={5}
+            className="w-full rounded-lg border-2 border-border-strong px-3 py-2 text-sm"
+          />
+        </div>
+
+        <div className="border-t border-border pt-4">
+          <div className="mb-2 font-heading text-sm font-bold text-ink">Cita cancelada por el paciente</div>
+          <p className="mb-2 text-xs text-faint">
+            Se envía cuando el paciente cancela su propia cita desde su link de &ldquo;Gestionar mi
+            cita&rdquo;.
+          </p>
+          <label className="mb-1 block text-xs font-bold text-muted-2">Asunto</label>
+          <input
+            type="text"
+            value={template.patientCancelSubject}
+            onChange={(e) => update("patientCancelSubject", e.target.value)}
+            className="mb-3 w-full rounded-lg border-2 border-border-strong px-3 py-2 text-sm"
+          />
+          <label className="mb-1 block text-xs font-bold text-muted-2">Mensaje</label>
+          <textarea
+            value={template.patientCancelBody}
+            onChange={(e) => update("patientCancelBody", e.target.value)}
             rows={5}
             className="w-full rounded-lg border-2 border-border-strong px-3 py-2 text-sm"
           />
