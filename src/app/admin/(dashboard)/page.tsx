@@ -4,6 +4,7 @@ import { parseDateKey, todayDateKey, toDateKey, formatTime } from "@/lib/schedul
 import { formatDateFull } from "@/lib/format";
 import { APPOINTMENT_STATUSES, type AppointmentStatus } from "@/lib/validation";
 import { StatusSelect } from "@/components/admin/StatusSelect";
+import { AutoRefresh } from "@/components/admin/AutoRefresh";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 import type { Prisma } from "@prisma/client";
 
@@ -54,6 +55,7 @@ export default async function AdminDashboardPage({
 
   return (
     <div>
+      <AutoRefresh />
       <div className="mb-8 grid gap-4 sm:grid-cols-3">
         <StatCard label="Citas hoy" value={todayCount} />
         <StatCard label="Confirmadas hoy" value={confirmedTodayCount} />
