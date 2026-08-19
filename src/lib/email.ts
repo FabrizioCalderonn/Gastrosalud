@@ -90,11 +90,18 @@ function renderEmailHtml(rawSubject: string, rawBody: string, input: Appointment
   return { subject, html };
 }
 
+// Temporarily disabled at the user's request (2026-08-19) — flip back to false to
+// re-enable automatic emails (confirm/cancel/reminder) without touching anything else.
+const EMAIL_SENDING_DISABLED = true;
+
 async function sendEmail(
   input: AppointmentEmailInput,
   rawSubject: string,
   rawBody: string,
 ): Promise<{ sent: boolean; error?: string }> {
+  if (EMAIL_SENDING_DISABLED) {
+    return { sent: false, error: "Envío de correo deshabilitado temporalmente" };
+  }
   if (!input.email) {
     return { sent: false, error: "El paciente no tiene correo registrado" };
   }

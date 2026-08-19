@@ -2,11 +2,14 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { toDateKey } from "@/lib/schedule";
 import { getMinLeadMinutes, getSlotDurationMinutes, getWorkingRangesByDay } from "@/lib/scheduling";
-import { getEmailTemplate } from "@/lib/email";
+// Email sending is temporarily disabled (see EMAIL_SENDING_DISABLED in src/lib/email.ts),
+// so the "edit email messages" section below is commented out too — uncomment both
+// together to restore it.
+// import { getEmailTemplate } from "@/lib/email";
 import { getSession, hasRole } from "@/lib/auth";
 import { WorkingHoursEditor } from "@/components/admin/WorkingHoursEditor";
 import { BlockedPeriodsManager } from "@/components/admin/BlockedPeriodsManager";
-import { EmailTemplateEditor } from "@/components/admin/EmailTemplateEditor";
+// import { EmailTemplateEditor } from "@/components/admin/EmailTemplateEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -14,12 +17,12 @@ export default async function ConfiguracionPage() {
   const session = await getSession();
   if (!hasRole(session, ["doctora", "recepcion"])) redirect("/admin");
 
-  const [slotDurationMinutes, minLeadMinutes, days, periods, emailTemplate] = await Promise.all([
+  const [slotDurationMinutes, minLeadMinutes, days, periods] = await Promise.all([
     getSlotDurationMinutes(),
     getMinLeadMinutes(),
     getWorkingRangesByDay(),
     prisma.blockedPeriod.findMany({ orderBy: { startDate: "desc" } }),
-    getEmailTemplate(),
+    // getEmailTemplate(),
   ]);
 
   const initialPeriods = periods.map((p) => ({
@@ -39,7 +42,7 @@ export default async function ConfiguracionPage() {
         initialMinLeadMinutes={minLeadMinutes}
       />
       <BlockedPeriodsManager initialPeriods={initialPeriods} />
-      <EmailTemplateEditor initialTemplate={emailTemplate} />
+      {/* <EmailTemplateEditor initialTemplate={emailTemplate} /> */}
     </div>
   );
 }
