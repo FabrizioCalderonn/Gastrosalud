@@ -35,13 +35,19 @@ export async function POST(req: NextRequest) {
   }
 
   // Find-or-create the patient: prefer an explicit selection from the autocomplete,
-  // then fall back to matching by DUI (unique) or phone, then create a new one.
+  // then fall back to matching by DUI (unique — reliable), then by an exact
+  // phone+name match. Phone ALONE is never enough to match — it's common for
+  // several different people (spouses, parent/child) to share one phone number,
+  // and matching on phone alone would silently merge them into one patient record.
   let patient = patientId ? await prisma.patient.findUnique({ where: { id: patientId } }) : null;
   if (!patient && dui) {
     patient = await prisma.patient.findUnique({ where: { dui } });
   }
   if (!patient) {
-    patient = await prisma.patient.findFirst({ where: { phone }, orderBy: { updatedAt: "desc" } });
+    patient = await prisma.patient.findFirst({
+      where: { phone, name: { equals: name, mode: "insensitive" } },
+      orderBy: { updatedAt: "desc" },
+    });
   }
   if (!patient) {
     patient = await prisma.patient.create({
