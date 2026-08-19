@@ -1,27 +1,41 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Role } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
-async function main() {
-  const username = process.env.ADMIN_SEED_USERNAME;
-  const password = process.env.ADMIN_SEED_PASSWORD;
+const ROLE_ACCOUNTS: { role: Role; name: string; envPrefix: string }[] = [
+  { role: "doctora", name: "Doctora", envPrefix: "DOCTORA" },
+  { role: "laboratorista", name: "Laboratorista", envPrefix: "LABORATORISTA" },
+  { role: "recepcion", name: "Recepción", envPrefix: "RECEPCION" },
+];
 
-  if (!username || !password) {
+async function seedStaffAccounts() {
+  let seededAny = false;
+  for (const { role, name, envPrefix } of ROLE_ACCOUNTS) {
+    const username = process.env[`${envPrefix}_SEED_USERNAME`];
+    const password = process.env[`${envPrefix}_SEED_PASSWORD`];
+    if (!username || !password) {
+      console.log(`Skipping ${role} account: ${envPrefix}_SEED_USERNAME/PASSWORD not set`);
+      continue;
+    }
+    const passwordHash = await bcrypt.hash(password, 12);
+    const user = await prisma.adminUser.upsert({
+      where: { username },
+      update: { passwordHash, role },
+      create: { username, passwordHash, name, role },
+    });
+    console.log(`${role} account ready: ${user.username}`);
+    seededAny = true;
+  }
+  if (!seededAny) {
     throw new Error(
-      "Set ADMIN_SEED_USERNAME and ADMIN_SEED_PASSWORD (in .env) before seeding the admin account.",
+      "No staff account env vars set — configure at least one of DOCTORA_/LABORATORISTA_/RECEPCION_SEED_USERNAME+PASSWORD in .env.",
     );
   }
+}
 
-  const passwordHash = await bcrypt.hash(password, 12);
-
-  const user = await prisma.adminUser.upsert({
-    where: { username },
-    update: { passwordHash },
-    create: { username, passwordHash, name: "Administrador" },
-  });
-
-  console.log(`Admin user ready: ${user.username}`);
+async function main() {
+  await seedStaffAccounts();
 
   await prisma.scheduleSettings.upsert({
     where: { id: 1 },

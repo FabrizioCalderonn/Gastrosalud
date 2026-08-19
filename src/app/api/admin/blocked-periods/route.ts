@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parseDateKey, toDateKey } from "@/lib/schedule";
 import { createBlockedPeriodSchema } from "@/lib/validation";
+import { getSession, hasRole } from "@/lib/auth";
 
 export async function GET() {
   const periods = await prisma.blockedPeriod.findMany({ orderBy: { startDate: "desc" } });
@@ -9,6 +10,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  if (!hasRole(await getSession(), ["doctora", "recepcion"])) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  }
   const body = await req.json().catch(() => null);
   const parsed = createBlockedPeriodSchema.safeParse(body);
   if (!parsed.success) {

@@ -1,12 +1,17 @@
 import Image from "next/image";
 import Link from "next/link";
-import { cookies } from "next/headers";
-import { SESSION_COOKIE_NAME, verifySessionToken } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import { LogoutButton } from "@/components/admin/LogoutButton";
+import type { Role } from "@prisma/client";
+
+const ROLE_LABELS: Record<Role, string> = {
+  doctora: "Doctora",
+  laboratorista: "Laboratorista",
+  recepcion: "Recepción",
+};
 
 export default async function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
-  const token = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
-  const session = token ? await verifySessionToken(token) : null;
+  const session = await getSession();
 
   return (
     <div className="min-h-screen bg-cream">
@@ -28,12 +33,21 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
           <Link href="/admin" className="text-sm font-bold text-ink hover:text-teal-dark">
             Citas
           </Link>
-          <Link href="/admin/configuracion" className="text-sm font-bold text-ink hover:text-teal-dark">
-            Horario y bloqueos
+          <Link href="/admin/pacientes" className="text-sm font-bold text-ink hover:text-teal-dark">
+            Pacientes
           </Link>
+          {session?.role !== "laboratorista" && (
+            <Link href="/admin/configuracion" className="text-sm font-bold text-ink hover:text-teal-dark">
+              Horario y bloqueos
+            </Link>
+          )}
         </nav>
         <div className="flex items-center gap-4">
-          {session && <span className="text-sm text-muted">Hola, {session.username}</span>}
+          {session && (
+            <span className="text-sm text-muted">
+              Hola, {session.username} <span className="text-faint">({ROLE_LABELS[session.role]})</span>
+            </span>
+          )}
           <LogoutButton />
         </div>
       </header>

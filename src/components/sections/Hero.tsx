@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { PlaceholderPhoto } from "@/components/PlaceholderPhoto";
 
 export function Hero() {
@@ -15,12 +14,12 @@ export function Hero() {
           La Dra. Angelica Salgado te acompaña con diagnóstico y tratamiento especializado en
           gastroenterología, endoscopía digestiva y medicina interna, en Santa Ana, El Salvador.
         </p>
-        <Link
-          href="/citas"
+        <a
+          href="#contacto"
           className="inline-block w-[200px] rounded-full bg-teal px-8 py-4 text-center font-heading text-lg font-bold text-white shadow-[0_10px_24px_rgba(44,166,174,0.35)] transition hover:bg-teal-darker"
         >
-          Haz tu cita
-        </Link>
+          Contáctanos
+        </a>
       </div>
       <PlaceholderPhoto
         label="Foto de la Dra. Angelica Salgado"

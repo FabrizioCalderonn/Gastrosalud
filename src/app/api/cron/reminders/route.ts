@@ -23,6 +23,7 @@ export async function GET(req: NextRequest) {
   let sent = 0;
   let failed = 0;
   for (const appointment of appointments) {
+    if (!appointment.email) continue;
     const result = await sendAppointmentReminderEmail({
       patientName: appointment.patientName,
       email: appointment.email,

@@ -153,7 +153,7 @@ export function ManageAppointment({
 
       {status === "cancelada" && (
         <p className="text-sm text-muted">
-          Esta cita ya está cancelada. Si deseas agendar una nueva, visita la página de citas.
+          Esta cita ya está cancelada. Si deseas agendar una nueva, contáctanos al {CLINIC_PHONE}.
         </p>
       )}
 

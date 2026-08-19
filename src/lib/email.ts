@@ -51,7 +51,7 @@ function getResend() {
 
 type AppointmentEmailInput = {
   patientName: string;
-  email: string;
+  email: string | null;
   dateKey: string;
   minutes: number;
   manageToken?: string | null;
@@ -95,6 +95,9 @@ async function sendEmail(
   rawSubject: string,
   rawBody: string,
 ): Promise<{ sent: boolean; error?: string }> {
+  if (!input.email) {
+    return { sent: false, error: "El paciente no tiene correo registrado" };
+  }
   const resend = getResend();
   const from = process.env.EMAIL_FROM;
   if (!resend || !from) {

@@ -13,13 +13,20 @@ model Appointment {
   date        DateTime
   // Slot start expressed as minutes after midnight (e.g. 8:30am = 510).
   minutes     Int
+  patientId   String
+  patient     Patient  @relation(fields: [patientId], references: [id])
   patientName String
   phone       String
-  email       String
+  dui         String?
+  // Optional — staff-created appointments may not have one. Automated emails
+  // (confirm/cancel/reminder) are skipped when null.
+  email       String?
   // "primera" | "seguimiento"
   visitType   String
-  // "pendiente" | "confirmada" | "cancelada"
+  // "pendiente" | "confirmada" | "cancelada" — drives automated emails, see src/lib/email.ts
   status      String   @default("pendiente")
+  // Separate attendance checkmark: "pendiente" | "visto" | "cancelado" | "reprogramado" — no email side effects.
+  attendanceStatus String @default("pendiente")
   notes       String?
   // Token for the patient's self-service link (/mi-cita/[token]). Nullable
   // because appointments created before this field existed have no token.
@@ -32,6 +39,13 @@ model Appointment {
   @@unique([date, minutes])
   @@index([date])
   @@index([status])
+  @@index([patientId])
+}
+
+enum Role {
+  doctora
+  laboratorista
+  recepcion
 }
 
 model AdminUser {
@@ -39,7 +53,66 @@ model AdminUser {
   username     String   @unique
   passwordHash String
   name         String?
+  role         Role     @default(doctora)
   createdAt    DateTime @default(now())
+}
+
+model Patient {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  dui       String?  @unique
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  appointments    Appointment[]
+  notes           PatientNote[]
+  labResults      LabResult[]
+  clinicalRecords ClinicalRecordEntry[]
+
+  @@index([phone])
+  @@index([name])
+}
+
+model PatientNote {
+  id         String   @id @default(cuid())
+  patientId  String
+  patient    Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  content    String
+  authorName String
+  authorRole Role
+  createdAt  DateTime @default(now())
+
+  @@index([patientId])
+}
+
+// Doctora-only. Enforced in the server component / route handler that reads
+// this model — must never be queried on behalf of another role.
+model ClinicalRecordEntry {
+  id         String   @id @default(cuid())
+  patientId  String
+  patient    Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  content    String
+  authorName String
+  createdAt  DateTime @default(now())
+
+  @@index([patientId])
+}
+
+model LabResult {
+  id         String   @id @default(cuid())
+  patientId  String
+  patient    Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  fileName   String
+  mimeType   String   @default("application/pdf")
+  fileSize   Int
+  fileData   Bytes
+  label      String?
+  uploadedBy String
+  createdAt  DateTime @default(now())
+
+  @@index([patientId])
 }
 
 // One row per working time range. A day with no rows is closed.

@@ -25,7 +25,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   let email: { sent: boolean; error?: string } | undefined;
   const shouldNotify =
-    nextStatus !== previous.status && (nextStatus === "confirmada" || nextStatus === "cancelada");
+    nextStatus !== previous.status &&
+    (nextStatus === "confirmada" || nextStatus === "cancelada") &&
+    !!appointment.email;
   if (shouldNotify) {
     email = await sendAppointmentStatusEmail(
       {

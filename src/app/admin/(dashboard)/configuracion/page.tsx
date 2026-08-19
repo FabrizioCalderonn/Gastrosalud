@@ -1,7 +1,9 @@
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { toDateKey } from "@/lib/schedule";
 import { getMinLeadMinutes, getSlotDurationMinutes, getWorkingRangesByDay } from "@/lib/scheduling";
 import { getEmailTemplate } from "@/lib/email";
+import { getSession, hasRole } from "@/lib/auth";
 import { WorkingHoursEditor } from "@/components/admin/WorkingHoursEditor";
 import { BlockedPeriodsManager } from "@/components/admin/BlockedPeriodsManager";
 import { EmailTemplateEditor } from "@/components/admin/EmailTemplateEditor";
@@ -9,6 +11,9 @@ import { EmailTemplateEditor } from "@/components/admin/EmailTemplateEditor";
 export const dynamic = "force-dynamic";
 
 export default async function ConfiguracionPage() {
+  const session = await getSession();
+  if (!hasRole(session, ["doctora", "recepcion"])) redirect("/admin");
+
   const [slotDurationMinutes, minLeadMinutes, days, periods, emailTemplate] = await Promise.all([
     getSlotDurationMinutes(),
     getMinLeadMinutes(),

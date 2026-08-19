@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useRef } from "react";
 
 const NAV_LINKS = [
@@ -14,8 +13,6 @@ const NAV_LINKS = [
 ];
 
 export function Header() {
-  const pathname = usePathname();
-  const isBooking = pathname.startsWith("/citas");
   const headerRef = useRef<HTMLElement>(null);
 
   function scrollToSection(e: React.MouseEvent<HTMLAnchorElement>, id: string) {
@@ -47,36 +44,18 @@ export function Header() {
         </div>
       </Link>
 
-      {!isBooking && (
-        <nav className="flex flex-wrap items-center gap-5">
-          {NAV_LINKS.map((link) => (
-            <a
-              key={link.id}
-              href={`/#${link.id}`}
-              onClick={(e) => scrollToSection(e, link.id)}
-              className="text-sm font-bold text-ink hover:text-teal-dark"
-            >
-              {link.label}
-            </a>
-          ))}
-        </nav>
-      )}
-
-      {isBooking ? (
-        <Link
-          href="/"
-          className="rounded-full bg-[#F2EFE8] px-[22px] py-3 font-heading text-sm font-bold text-ink transition hover:bg-[#E7E1D2]"
-        >
-          ← Volver al inicio
-        </Link>
-      ) : (
-        <Link
-          href="/citas"
-          className="rounded-full bg-teal px-[26px] py-3 font-heading text-[15px] font-bold text-white shadow-[0_6px_16px_rgba(44,166,174,0.35)] transition hover:bg-teal-darker"
-        >
-          Haz tu cita
-        </Link>
-      )}
+      <nav className="flex flex-wrap items-center gap-5">
+        {NAV_LINKS.map((link) => (
+          <a
+            key={link.id}
+            href={`/#${link.id}`}
+            onClick={(e) => scrollToSection(e, link.id)}
+            className="text-sm font-bold text-ink hover:text-teal-dark"
+          >
+            {link.label}
+          </a>
+        ))}
+      </nav>
     </header>
   );
 }

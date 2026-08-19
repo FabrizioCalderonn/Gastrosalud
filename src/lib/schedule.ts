@@ -44,6 +44,13 @@ export function isWithinCutoff(dateKey: string, minutes: number, cutoffMs: numbe
   return Date.now() >= dateKeyAndMinutesToUtcDate(dateKey, minutes).getTime() - cutoffMs;
 }
 
+/** Shifts a "YYYY-MM-DD" key by `delta` calendar days (can be negative). */
+export function addDaysToDateKey(dateKey: string, delta: number): string {
+  const date = parseDateKey(dateKey);
+  date.setUTCDate(date.getUTCDate() + delta);
+  return toDateKey(date);
+}
+
 export function formatTime(minutes: number): string {
   const h = Math.floor(minutes / 60);
   const mi = minutes % 60;

@@ -8,20 +8,28 @@ Construido con **Next.js (App Router) + TypeScript + Tailwind CSS v4 + Prisma**.
 ## Qué incluye
 
 - **Sitio público** (`/`): landing con secciones de la doctora, servicios, seguros,
-  preguntas frecuentes y blog.
-- **Agenda de citas** (`/citas`): flujo de 3 pasos (fecha/hora → datos → confirmación),
-  con disponibilidad real calculada contra la base de datos (no simulada).
-- **Panel administrativo** (`/admin`): login con usuario/contraseña, lista de citas con
-  filtros por fecha/estado/búsqueda, y cambio de estado (pendiente, confirmada,
-  cancelada, completada).
+  preguntas frecuentes y blog. No hay agenda pública — el sitio dirige a llamar/escribir
+  a la clínica.
+- **3 roles de personal** (Doctora, Laboratorista, Recepción), cada uno con su propia
+  cuenta y permisos distintos dentro de `/admin` (ver `src/lib/auth.ts` — `hasRole`).
+- **Panel administrativo** (`/admin`): vista de citas del día (con navegación día a día
+  y selector de calendario), creación de citas desde el panel (Doctora/Recepción) con
+  autocompletado de pacientes repetidos, cambio de estado (pendiente, confirmada,
+  cancelada, completada) y un checkmark de asistencia aparte (pendiente, visto,
+  cancelado, reprogramado).
+- **Perfil de paciente** (`/admin/pacientes/[id]`): datos de contacto, historial de
+  citas, notas del personal, resultados de laboratorio en PDF (subidos por
+  Laboratorista, visibles para todos), y expediente clínico (visible solo para
+  Doctora).
 - **Notificaciones al paciente**: al confirmar o cancelar una cita se envía un correo
-  automático (vía Resend). Además, cada cita tiene un botón "Enviar" que abre WhatsApp
-  con un mensaje ya escrito (confirmación, cancelación o recordatorio según el estado)
-  listo para enviar con un clic.
-- **Horario y bloqueos** (`/admin/configuracion`): la Dra. Angelica (o quien administre
-  el sitio) define ahí mismo qué días y horas se atiende, la duración de cada cita, y
-  puede bloquear fechas/horas puntuales (vacaciones, una tarde, una semana) — esos
-  horarios dejan de estar disponibles para agendar automáticamente.
+  automático (vía Resend) si el paciente tiene correo registrado. Además, cada cita
+  tiene un botón "Enviar" que abre WhatsApp con un mensaje ya escrito (confirmación,
+  cancelación o recordatorio según el estado) listo para enviar con un clic; el perfil
+  del paciente también tiene un botón directo para escribirle por WhatsApp.
+- **Horario y bloqueos** (`/admin/configuracion`, Doctora/Recepción): define ahí mismo
+  qué días y horas se atiende, la duración de cada cita, y puede bloquear fechas/horas
+  puntuales (vacaciones, una tarde, una semana) — esos horarios dejan de estar
+  disponibles para agendar automáticamente.
 
 El diseño original hecho con la herramienta de diseño de Claude quedó guardado en
 `design-reference/` como referencia — ya no se usa en producción.
@@ -45,17 +53,21 @@ Edita `.env` y define al menos:
 ```
 DATABASE_URL="postgresql://usuario:password@host/basededatos?sslmode=require"
 SESSION_SECRET="<genera uno con: openssl rand -base64 32>"
-ADMIN_SEED_USERNAME="admin"
-ADMIN_SEED_PASSWORD="<una contraseña segura>"
+DOCTORA_SEED_USERNAME="doctora"
+DOCTORA_SEED_PASSWORD="<una contraseña segura>"
+LABORATORISTA_SEED_USERNAME="laboratorista"
+LABORATORISTA_SEED_PASSWORD="<una contraseña segura>"
+RECEPCION_SEED_USERNAME="recepcion"
+RECEPCION_SEED_PASSWORD="<una contraseña segura>"
 ```
 
 El proyecto usa Postgres (probado con [Neon](https://neon.tech)) tanto en local como en
 producción — no SQLite — para que el mismo `schema.prisma` sirva en ambos entornos.
 
-Crea las tablas y el usuario administrador inicial:
+Crea las tablas y las 3 cuentas de personal (Doctora, Laboratorista, Recepción):
 
 ```bash
-npm run db:migrate   # aplica las migraciones y siembra el admin
+npm run db:migrate   # aplica las migraciones y siembra las cuentas
 ```
 
 Levanta el servidor:
@@ -65,11 +77,14 @@ npm run dev
 ```
 
 - Sitio: http://localhost:3000
-- Agenda: http://localhost:3000/citas
-- Panel admin: http://localhost:3000/admin/login (usuario/contraseña de `ADMIN_SEED_*`)
+- Panel admin: http://localhost:3000/admin/login (usuario/contraseña de la cuenta del rol
+  con el que quieras entrar — `DOCTORA_SEED_*`, `LABORATORISTA_SEED_*` o `RECEPCION_SEED_*`)
 
-Si cambias `ADMIN_SEED_USERNAME`/`ADMIN_SEED_PASSWORD` después de la primera vez,
-vuelve a correr `npm run db:seed` para actualizar la cuenta.
+Ya no hay agenda pública (`/citas`) — todas las citas se crean desde el panel admin
+(Doctora o Recepción).
+
+Si cambias alguna contraseña/usuario después de la primera vez, vuelve a correr
+`npm run db:seed` para actualizar esa cuenta.
 
 ## Correo automático (Resend)
 
@@ -118,16 +133,19 @@ sesión iniciada:
      de tu `.env` local).
    - `RESEND_API_KEY` y `EMAIL_FROM` — los mismos valores que usas en local, para que
      el correo de confirmación/cancelación funcione también en producción.
-   - No hace falta poner `ADMIN_SEED_USERNAME`/`ADMIN_SEED_PASSWORD` en Vercel — esas
+   - No hace falta poner las variables `*_SEED_USERNAME`/`*_SEED_PASSWORD` en Vercel —
      solo las usa el script de seed, que corres una vez desde tu máquina (paso 3).
-3. Antes (o después) del primer deploy, siembra el usuario administrador en la base de
+3. Antes (o después) del primer deploy, siembra las 3 cuentas de personal en la base de
    producción corriendo localmente `npm run db:seed` con el `DATABASE_URL` de
    producción en tu `.env`.
 4. Haz el deploy (push a la rama conectada, o "Deploy" en el dashboard de Vercel).
 
 ## Notas de seguridad
 
-- Cambia `ADMIN_SEED_PASSWORD` antes de desplegar — el valor de ejemplo no es seguro.
+- Cambia las contraseñas `*_SEED_PASSWORD` antes de desplegar — el valor de ejemplo no
+  es seguro.
 - `SESSION_SECRET` debe ser un valor largo y aleatorio, distinto en cada entorno.
-- El panel `/admin` está protegido por `src/middleware.ts`, que exige una sesión
-  válida para cualquier ruta bajo `/admin` y `/api/admin` (excepto login).
+- El panel `/admin` está protegido por `src/proxy.ts`, que exige una sesión
+  válida para cualquier ruta bajo `/admin` y `/api/admin` (excepto login). Los permisos
+  específicos de cada rol (Doctora/Laboratorista/Recepción) se revisan además dentro de
+  cada página/ruta sensible.

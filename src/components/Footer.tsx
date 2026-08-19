@@ -1,5 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
 
 export function Footer() {
   return (
@@ -20,12 +19,12 @@ export function Footer() {
             Clínica de la Dra. Angelica Salgado — Gastroenterología, Endoscopía digestiva y Medicina
             interna en Santa Ana, El Salvador.
           </p>
-          <Link
-            href="/citas"
+          <a
+            href="tel:+50378679475"
             className="inline-block rounded-full bg-teal px-[26px] py-3.5 font-heading text-sm font-bold text-white transition hover:bg-teal-darker"
           >
-            Haz tu cita
-          </Link>
+            Llámanos para agendar
+          </a>
         </div>
         <div>
           <div className="mb-3.5 font-heading text-sm font-bold text-white">Contacto</div>

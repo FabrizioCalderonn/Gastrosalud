@@ -42,6 +42,13 @@ export function buildPatientToClinicWhatsAppLink(input: {
   return `https://wa.me/${clinicNumber}?text=${encodeURIComponent(message)}`;
 }
 
+/** Generic "message this patient" link from a patient profile — not tied to a specific appointment. */
+export function buildGenericWhatsAppLink(input: { phone: string; patientName: string }): string {
+  const number = normalizePhoneForWhatsApp(input.phone);
+  const message = `Hola ${input.patientName}, te escribimos de GastroSalud (Dra. Angelica Salgado).`;
+  return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+}
+
 export function buildWhatsAppLink(input: {
   phone: string;
   patientName: string;

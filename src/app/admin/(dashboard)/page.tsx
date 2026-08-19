@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { parseDateKey, todayDateKey, toDateKey, formatTime } from "@/lib/schedule";
-import { formatDateFull } from "@/lib/format";
-import { APPOINTMENT_STATUSES, type AppointmentStatus } from "@/lib/validation";
+import { APPOINTMENT_STATUSES, type AppointmentStatus, type AttendanceStatus } from "@/lib/validation";
 import { StatusSelect } from "@/components/admin/StatusSelect";
+import { AttendanceStatusSelect } from "@/components/admin/AttendanceStatusSelect";
+import { DayNav } from "@/components/admin/DayNav";
 import { AutoRefresh } from "@/components/admin/AutoRefresh";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
+import { getSession, hasRole } from "@/lib/auth";
 import type { Prisma } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -30,9 +32,12 @@ export default async function AdminDashboardPage({
 }) {
   const { date, status, q } = await searchParams;
   const todayKey = todayDateKey();
+  const viewDateKey = date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : todayKey;
 
-  const where: Prisma.AppointmentWhereInput = {};
-  if (date) where.date = parseDateKey(date);
+  const session = await getSession();
+  const canCreateAppointments = hasRole(session, ["doctora", "recepcion"]);
+
+  const where: Prisma.AppointmentWhereInput = { date: parseDateKey(viewDateKey) };
   if (status && (APPOINTMENT_STATUSES as readonly string[]).includes(status)) where.status = status;
   if (q) {
     where.OR = [
@@ -45,7 +50,7 @@ export default async function AdminDashboardPage({
   const [appointments, todayCount, pendingCount, confirmedTodayCount] = await Promise.all([
     prisma.appointment.findMany({
       where,
-      orderBy: [{ date: "asc" }, { minutes: "asc" }],
+      orderBy: [{ minutes: "asc" }],
       take: 200,
     }),
     prisma.appointment.count({ where: { date: parseDateKey(todayKey), status: { not: "cancelada" } } }),
@@ -62,16 +67,20 @@ export default async function AdminDashboardPage({
         <StatCard label="Pendientes de confirmar" value={pendingCount} />
       </div>
 
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <DayNav dateKey={viewDateKey} />
+        {canCreateAppointments && (
+          <Link
+            href="/admin/citas/nueva"
+            className="rounded-full bg-teal px-5 py-2.5 font-heading text-sm font-bold text-white"
+          >
+            + Nueva cita
+          </Link>
+        )}
+      </div>
+
       <form className="mb-6 flex flex-wrap items-end gap-4 rounded-2xl border border-border bg-surface p-5">
-        <div>
-          <label className="mb-1 block text-xs font-bold text-muted-2">Fecha</label>
-          <input
-            type="date"
-            name="date"
-            defaultValue={date}
-            className="rounded-lg border-2 border-border-strong px-3 py-2 text-sm"
-          />
-        </div>
+        <input type="hidden" name="date" value={viewDateKey} />
         <div>
           <label className="mb-1 block text-xs font-bold text-muted-2">Estado</label>
           <select
@@ -103,48 +112,53 @@ export default async function AdminDashboardPage({
         >
           Filtrar
         </button>
-        {(date || status || q) && (
-          <Link href="/admin" className="text-sm font-bold text-muted underline">
+        {(status || q) && (
+          <Link href={`/admin?date=${viewDateKey}`} className="text-sm font-bold text-muted underline">
             Limpiar filtros
           </Link>
         )}
       </form>
 
       <div className="overflow-x-auto rounded-2xl border border-border bg-surface">
-        <table className="w-full min-w-[720px] text-left text-sm">
+        <table className="w-full min-w-[820px] text-left text-sm">
           <thead>
             <tr className="border-b border-border text-xs uppercase tracking-wide text-muted-2">
-              <th className="px-5 py-3 font-bold">Fecha</th>
-              <th className="px-5 py-3 font-bold">Hora</th>
-              <th className="px-5 py-3 font-bold">Paciente</th>
+              <th className="px-5 py-3 font-bold">Hora / Paciente</th>
               <th className="px-5 py-3 font-bold">Contacto</th>
               <th className="px-5 py-3 font-bold">Visita</th>
               <th className="px-5 py-3 font-bold">Estado</th>
+              <th className="px-5 py-3 font-bold">Asistencia</th>
               <th className="px-5 py-3 font-bold">WhatsApp</th>
             </tr>
           </thead>
           <tbody>
             {appointments.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-5 py-8 text-center text-muted">
+                <td colSpan={6} className="px-5 py-8 text-center text-muted">
                   No hay citas con estos filtros.
                 </td>
               </tr>
             )}
             {appointments.map((a) => (
               <tr key={a.id} className="border-b border-border last:border-0">
-                <td className="px-5 py-4 font-semibold text-ink">{formatDateFull(toDateKey(a.date))}</td>
-                <td className="px-5 py-4 text-ink">{formatTime(a.minutes)}</td>
-                <td className="px-5 py-4 text-ink">{a.patientName}</td>
+                <td className="px-5 py-4">
+                  <Link href={`/admin/pacientes/${a.patientId}`} className="block hover:underline">
+                    <div className="font-heading font-bold text-ink">{formatTime(a.minutes)}</div>
+                    <div className="text-ink">{a.patientName}</div>
+                  </Link>
+                </td>
                 <td className="px-5 py-4 text-muted">
                   <div>{a.phone}</div>
-                  <div className="text-xs text-faint">{a.email}</div>
+                  {a.email && <div className="text-xs text-faint">{a.email}</div>}
                 </td>
                 <td className="px-5 py-4 text-muted">
                   {a.visitType === "primera" ? "Primera vez" : "Seguimiento"}
                 </td>
                 <td className="px-5 py-4">
                   <StatusSelect id={a.id} status={a.status as AppointmentStatus} />
+                </td>
+                <td className="px-5 py-4">
+                  <AttendanceStatusSelect id={a.id} attendanceStatus={a.attendanceStatus as AttendanceStatus} />
                 </td>
                 <td className="px-5 py-4">
                   <a

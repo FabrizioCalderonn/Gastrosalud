@@ -1,7 +1,11 @@
 import { SignJWT, jwtVerify } from "jose";
+import { cookies } from "next/headers";
+import type { Role } from "@prisma/client";
 
 export const SESSION_COOKIE_NAME = "gs_admin_session";
 const SESSION_TTL_SECONDS = 60 * 60 * 8; // 8 hours
+
+const ROLES: readonly Role[] = ["doctora", "laboratorista", "recepcion"];
 
 function getSecretKey() {
   const secret = process.env.SESSION_SECRET;
@@ -12,10 +16,11 @@ function getSecretKey() {
 export type SessionPayload = {
   sub: string;
   username: string;
+  role: Role;
 };
 
 export async function createSessionToken(payload: SessionPayload): Promise<string> {
-  return new SignJWT({ username: payload.username })
+  return new SignJWT({ username: payload.username, role: payload.role })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(payload.sub)
     .setIssuedAt()
@@ -27,10 +32,22 @@ export async function verifySessionToken(token: string): Promise<SessionPayload 
   try {
     const { payload } = await jwtVerify(token, getSecretKey());
     if (typeof payload.sub !== "string" || typeof payload.username !== "string") return null;
-    return { sub: payload.sub, username: payload.username };
+    if (typeof payload.role !== "string" || !ROLES.includes(payload.role as Role)) return null;
+    return { sub: payload.sub, username: payload.username, role: payload.role as Role };
   } catch {
     return null;
   }
+}
+
+/** Throws-free role gate: returns true when the session's role is one of `allowed`. */
+export function hasRole(session: SessionPayload | null, allowed: readonly Role[]): boolean {
+  return session != null && allowed.includes(session.role);
+}
+
+/** Reads and verifies the session from the request cookies — for use in server components and route handlers. */
+export async function getSession(): Promise<SessionPayload | null> {
+  const token = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
+  return token ? verifySessionToken(token) : null;
 }
 
 export const SESSION_MAX_AGE = SESSION_TTL_SECONDS;
