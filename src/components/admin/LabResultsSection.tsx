@@ -68,7 +68,7 @@ export function LabResultsSection({
               type="file"
               accept="application/pdf"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              className="text-sm"
+              className="cursor-pointer text-sm text-muted file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-teal file:px-4 file:py-2 file:font-heading file:text-sm file:font-bold file:text-white hover:file:bg-teal-darker"
             />
           </div>
           <div className="flex-1 min-w-[160px]">
