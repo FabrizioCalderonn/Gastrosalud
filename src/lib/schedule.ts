@@ -58,3 +58,19 @@ export function formatTime(minutes: number): string {
   const h12 = h % 12 || 12;
   return `${h12}:${mi === 0 ? "00" : String(mi).padStart(2, "0")} ${period}`;
 }
+
+/** e.g. "8:00 AM – 8:30 AM" for a free-duration appointment. */
+export function formatTimeRange(minutes: number, durationMinutes: number): string {
+  return `${formatTime(minutes)} – ${formatTime(minutes + durationMinutes)}`;
+}
+
+/** "HH:MM" (24h, for <input type="time">) from minutes-after-midnight. */
+export function minutesToTimeInput(minutes: number): string {
+  return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+}
+
+/** Inverse of minutesToTimeInput — parses an <input type="time"> value ("HH:MM") to minutes-after-midnight. */
+export function timeInputToMinutes(value: string): number {
+  const [h, m] = value.split(":").map(Number);
+  return h * 60 + m;
+}

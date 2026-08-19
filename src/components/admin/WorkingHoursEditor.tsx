@@ -34,7 +34,8 @@ export function WorkingHoursEditor({
 }) {
   const [days, setDays] = useState(initialDays);
   const [slotDuration, setSlotDuration] = useState(initialSlotDuration);
-  const [minLeadMinutes, setMinLeadMinutes] = useState(initialMinLeadMinutes);
+  // Setter unused while the "anticipación mínima" control below is commented out.
+  const [minLeadMinutes] = useState(initialMinLeadMinutes);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "error"; text: string } | null>(null);
 
@@ -87,7 +88,9 @@ export function WorkingHoursEditor({
 
       <div className="mb-5 flex flex-wrap gap-6">
         <div>
-          <label className="mb-1 block text-xs font-bold text-muted-2">Duración de cada cita (minutos)</label>
+          <label className="mb-1 block text-xs font-bold text-muted-2">
+            Duración por defecto al crear una cita (minutos)
+          </label>
           <input
             type="number"
             min={5}
@@ -97,7 +100,15 @@ export function WorkingHoursEditor({
             onChange={(e) => setSlotDuration(Number(e.target.value))}
             className="w-28 rounded-lg border-2 border-border-strong px-3 py-2 text-sm"
           />
+          <p className="mt-1 text-xs text-faint">
+            Cada cita puede tener su propia duración al crearla — esto solo define el valor
+            inicial sugerido.
+          </p>
         </div>
+        {/* Anticipación mínima para agendar/reprogramar — deshabilitada a pedido del
+            usuario (2026-08-19). scheduling.ts:getMinLeadMinutes() siempre devuelve 0.
+            Descomentar este bloque (y volver a leer minLeadMinutes en scheduling.ts) para
+            restaurarla.
         <div>
           <label className="mb-1 block text-xs font-bold text-muted-2">
             Anticipación mínima para agendar/reprogramar (minutos)
@@ -114,6 +125,7 @@ export function WorkingHoursEditor({
             Ej. 60 = ya no se puede agendar un horario con menos de 1 hora de anticipación.
           </p>
         </div>
+        */}
       </div>
 
       <div className="flex flex-col gap-4">

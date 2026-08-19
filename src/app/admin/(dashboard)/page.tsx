@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { parseDateKey, todayDateKey, toDateKey, formatTime } from "@/lib/schedule";
+import { parseDateKey, todayDateKey, toDateKey, formatTimeRange } from "@/lib/schedule";
 import { APPOINTMENT_STATUSES, type AppointmentStatus, type AttendanceStatus } from "@/lib/validation";
 import { StatusSelect } from "@/components/admin/StatusSelect";
 import { AttendanceStatusSelect } from "@/components/admin/AttendanceStatusSelect";
@@ -143,7 +143,9 @@ export default async function AdminDashboardPage({
               <tr key={a.id} className="border-b border-border last:border-0">
                 <td className="px-5 py-4">
                   <Link href={`/admin/pacientes/${a.patientId}`} className="block hover:underline">
-                    <div className="font-heading font-bold text-ink">{formatTime(a.minutes)}</div>
+                    <div className="font-heading font-bold text-ink">
+                      {formatTimeRange(a.minutes, a.durationMinutes)}
+                    </div>
                     <div className="text-ink">{a.patientName}</div>
                   </Link>
                 </td>

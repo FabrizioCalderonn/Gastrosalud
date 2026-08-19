@@ -3,13 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { formatDateFull, formatDateShort } from "@/lib/format";
+import { formatTimeRange, timeInputToMinutes } from "@/lib/schedule";
 
-type Slot = { minutes: number; label: string; booked: boolean };
+type BusyRange = { id: string; minutes: number; durationMinutes: number; patientName: string };
 type PatientMatch = { id: string; name: string; phone: string; dui: string | null; email: string | null };
 
-const DATE_COUNT = 14;
+const DATE_COUNT = 30;
+const DURATION_PRESETS = [15, 20, 30, 45, 60, 90, 120];
 
-export function NewAppointmentForm() {
+export function NewAppointmentForm({ defaultDurationMinutes }: { defaultDurationMinutes: number }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedDate = searchParams.get("date") ?? undefined;
@@ -23,14 +25,18 @@ export function NewAppointmentForm() {
   const [dateKeys, setDateKeys] = useState<string[]>([]);
   const [loadingDates, setLoadingDates] = useState(true);
   const [dateIdx, setDateIdx] = useState(0);
-  const [minutes, setMinutes] = useState<number | null>(null);
-  const [slots, setSlots] = useState<Slot[]>([]);
-  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [startTime, setStartTime] = useState("");
+  const [duration, setDuration] = useState(defaultDurationMinutes);
+  const [customDuration, setCustomDuration] = useState(false);
+
+  const [busy, setBusy] = useState<BusyRange[]>([]);
+  const [loadingBusy, setLoadingBusy] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const selectedDateKey = dateKeys[dateIdx];
+  const startMinutes = startTime ? timeInputToMinutes(startTime) : null;
 
   useEffect(() => {
     fetch(`/api/booking-days?count=${DATE_COUNT}`)
@@ -50,15 +56,14 @@ export function NewAppointmentForm() {
   useEffect(() => {
     if (!selectedDateKey) return;
     let cancelled = false;
-    setLoadingSlots(true);
-    setMinutes(null);
-    fetch(`/api/availability?date=${selectedDateKey}`)
+    setLoadingBusy(true);
+    fetch(`/api/admin/appointments?date=${selectedDateKey}`)
       .then((res) => res.json())
       .then((data) => {
-        if (!cancelled) setSlots(data.slots ?? []);
+        if (!cancelled) setBusy(data.busy ?? []);
       })
       .finally(() => {
-        if (!cancelled) setLoadingSlots(false);
+        if (!cancelled) setLoadingBusy(false);
       });
     return () => {
       cancelled = true;
@@ -91,7 +96,7 @@ export function NewAppointmentForm() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (minutes == null || !selectedDateKey) return;
+    if (startMinutes == null || !selectedDateKey) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -100,7 +105,8 @@ export function NewAppointmentForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           dateKey: selectedDateKey,
-          minutes,
+          minutes: startMinutes,
+          durationMinutes: duration,
           patientId: patientId ?? undefined,
           name: form.name,
           phone: form.phone,
@@ -198,7 +204,7 @@ export function NewAppointmentForm() {
       </div>
 
       <div className="rounded-2xl border border-border bg-surface p-5">
-        <h2 className="mb-4 font-heading text-base font-bold text-ink">Fecha y hora</h2>
+        <h2 className="mb-4 font-heading text-base font-bold text-ink">Fecha, hora y duración</h2>
         {loadingDates ? (
           <div className="py-4 text-sm text-muted">Cargando fechas disponibles…</div>
         ) : (
@@ -227,37 +233,83 @@ export function NewAppointmentForm() {
 
         {selectedDateKey && (
           <>
-            <div className="mb-3 text-sm font-bold text-ink">
-              Horarios disponibles — {formatDateFull(selectedDateKey)}
-            </div>
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(96px,1fr))] gap-2.5">
-              {loadingSlots ? (
-                <div className="col-span-full py-4 text-sm text-muted">Cargando horarios…</div>
-              ) : slots.length === 0 ? (
-                <div className="col-span-full py-4 text-sm text-muted">No hay horarios disponibles este día.</div>
-              ) : (
-                slots.map((s) => {
-                  const selected = minutes === s.minutes;
-                  return (
+            <div className="mb-4 flex flex-wrap items-end gap-4">
+              <div>
+                <label className="mb-1.5 block text-sm font-bold text-ink">Hora de inicio</label>
+                <input
+                  type="time"
+                  required
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="rounded-xl border-2 border-border-strong px-4 py-3 text-[15px]"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-bold text-ink">Duración</label>
+                {!customDuration ? (
+                  <select
+                    value={duration}
+                    onChange={(e) => {
+                      if (e.target.value === "custom") {
+                        setCustomDuration(true);
+                        return;
+                      }
+                      setDuration(Number(e.target.value));
+                    }}
+                    className="rounded-xl border-2 border-border-strong px-4 py-3 text-[15px]"
+                  >
+                    {DURATION_PRESETS.map((m) => (
+                      <option key={m} value={m}>
+                        {m} min
+                      </option>
+                    ))}
+                    <option value="custom">Personalizada…</option>
+                  </select>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={5}
+                      max={480}
+                      step={5}
+                      value={duration}
+                      onChange={(e) => setDuration(Number(e.target.value))}
+                      className="w-24 rounded-xl border-2 border-border-strong px-4 py-3 text-[15px]"
+                    />
+                    <span className="text-sm text-muted">min</span>
                     <button
-                      key={s.minutes}
                       type="button"
-                      disabled={s.booked}
-                      onClick={() => setMinutes(s.minutes)}
-                      className={`rounded-xl border-2 px-2 py-3 font-heading text-sm font-bold ${
-                        s.booked
-                          ? "cursor-not-allowed border-[#F2EFE8] bg-[#F2EFE8] text-faint opacity-60"
-                          : selected
-                            ? "border-teal bg-teal text-white"
-                            : "border-border-strong bg-cream text-ink"
-                      }`}
+                      onClick={() => setCustomDuration(false)}
+                      className="text-xs font-bold text-muted underline"
                     >
-                      {s.label}
+                      usar preestablecida
                     </button>
-                  );
-                })
+                  </div>
+                )}
+              </div>
+              {startMinutes != null && duration > 0 && (
+                <div className="rounded-xl bg-teal-tint px-4 py-3 text-sm font-bold text-teal-dark">
+                  {formatTimeRange(startMinutes, duration)}
+                </div>
               )}
             </div>
+
+            <div className="text-sm font-bold text-ink">Citas ya agendadas — {formatDateFull(selectedDateKey)}</div>
+            {loadingBusy ? (
+              <div className="py-3 text-sm text-muted">Cargando…</div>
+            ) : busy.length === 0 ? (
+              <div className="py-3 text-sm text-muted">No hay citas este día todavía.</div>
+            ) : (
+              <div className="mt-2 flex flex-col gap-1.5">
+                {busy.map((b) => (
+                  <div key={b.id} className="rounded-lg bg-cream px-3 py-2 text-sm text-muted">
+                    <span className="font-bold text-ink">{formatTimeRange(b.minutes, b.durationMinutes)}</span>
+                    {" · "}
+                    {b.patientName}
+                  </div>
+                ))}
+              </div>
+            )}
           </>
         )}
       </div>
@@ -268,7 +320,7 @@ export function NewAppointmentForm() {
 
       <button
         type="submit"
-        disabled={submitting || minutes == null}
+        disabled={submitting || startMinutes == null}
         className="rounded-full bg-teal py-4 font-heading text-base font-bold text-white disabled:opacity-50"
       >
         {submitting ? "Agendando…" : "Crear cita"}

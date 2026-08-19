@@ -3,17 +3,20 @@ import { prisma } from "@/lib/prisma";
 import { formatTime, isWithinCutoff, parseDateKey, toDateKey, todayDateKey } from "@/lib/schedule";
 
 const DEFAULT_SLOT_DURATION = 30;
-const DEFAULT_MIN_LEAD_MINUTES = 60;
 
 export async function getSlotDurationMinutes(): Promise<number> {
   const settings = await prisma.scheduleSettings.findUnique({ where: { id: 1 } });
   return settings?.slotDurationMinutes ?? DEFAULT_SLOT_DURATION;
 }
 
-/** Minimum notice (in minutes) required before a slot's start time to still book/reschedule it. */
+/**
+ * Minimum notice (in minutes) required before a slot's start time to still book/reschedule it.
+ * Disabled at the user's request (2026-08-19) — always returns 0, so the only remaining
+ * constraint is that a slot can't already be in the past. The `ScheduleSettings.minLeadMinutes`
+ * column and its admin UI control are left in place (unused) in case this needs to come back.
+ */
 export async function getMinLeadMinutes(): Promise<number> {
-  const settings = await prisma.scheduleSettings.findUnique({ where: { id: 1 } });
-  return settings?.minLeadMinutes ?? DEFAULT_MIN_LEAD_MINUTES;
+  return 0;
 }
 
 export type WorkingRange = { startMinutes: number; endMinutes: number };
@@ -73,6 +76,14 @@ function isMinuteBlockedBy(date: Date, minutes: number, periods: BlockedPeriodRo
   });
 }
 
+function isRangeBlockedBy(date: Date, startMinutes: number, endMinutes: number, periods: BlockedPeriodRow[]): boolean {
+  return periods.some((p) => {
+    if (!isDateWithinPeriod(date, p)) return false;
+    if (p.startMinutes == null || p.endMinutes == null) return true; // whole-day block
+    return startMinutes < p.endMinutes && endMinutes > p.startMinutes;
+  });
+}
+
 export type AvailabilitySlot = { minutes: number; label: string; booked: boolean };
 
 export async function computeAvailability(dateKey: string): Promise<AvailabilitySlot[]> {
@@ -81,21 +92,91 @@ export async function computeAvailability(dateKey: string): Promise<Availability
     getSlotDurationMinutes(),
     getMinLeadMinutes(),
     getWorkingRangesByDay(),
-    prisma.appointment.findMany({ where: { date, status: { not: "cancelada" } }, select: { minutes: true } }),
+    prisma.appointment.findMany({
+      where: { date, status: { not: "cancelada" } },
+      select: { minutes: true, durationMinutes: true },
+    }),
     getBlockedPeriodsInRange(date, date),
   ]);
 
   const slotMinutes = rangesToSlots(rangesByDay[date.getUTCDay()] ?? [], durationMinutes);
-  const bookedSet = new Set(appointments.map((a) => a.minutes));
 
-  return slotMinutes.map((minutes) => ({
-    minutes,
-    label: formatTime(minutes),
-    booked:
-      bookedSet.has(minutes) ||
-      isMinuteBlockedBy(date, minutes, blockedPeriods) ||
-      isWithinCutoff(dateKey, minutes, minLeadMinutes * 60 * 1000),
-  }));
+  return slotMinutes.map((minutes) => {
+    const slotEnd = minutes + durationMinutes;
+    const overlapsExisting = appointments.some(
+      (a) => minutes < a.minutes + a.durationMinutes && slotEnd > a.minutes,
+    );
+    return {
+      minutes,
+      label: formatTime(minutes),
+      booked:
+        overlapsExisting ||
+        isMinuteBlockedBy(date, minutes, blockedPeriods) ||
+        isWithinCutoff(dateKey, minutes, minLeadMinutes * 60 * 1000),
+    };
+  });
+}
+
+export type BusyRange = { id: string; minutes: number; durationMinutes: number; patientName: string };
+
+/** Existing non-cancelled appointments for a day, for staff to see what's already taken while free-picking a start time/duration. */
+export async function getBusyRangesForDate(dateKey: string): Promise<BusyRange[]> {
+  const date = parseDateKey(dateKey);
+  return prisma.appointment.findMany({
+    where: { date, status: { not: "cancelada" } },
+    select: { id: true, minutes: true, durationMinutes: true, patientName: true },
+    orderBy: { minutes: "asc" },
+  });
+}
+
+/**
+ * Whether an arbitrary [startMinutes, startMinutes + durationMinutes) range can be booked —
+ * for the admin's free-duration ("Google Calendar style") appointment creation. Checks working
+ * hours containment, blocked periods, overlap with existing non-cancelled appointments, and that
+ * the start isn't already in the past. No minimum lead time is enforced (see getMinLeadMinutes).
+ */
+export async function isRangeAvailable(
+  dateKey: string,
+  startMinutes: number,
+  durationMinutes: number,
+  excludeAppointmentId?: string,
+): Promise<{ available: boolean; reason?: string }> {
+  if (durationMinutes < 5) return { available: false, reason: "La duración mínima es 5 minutos" };
+
+  const date = parseDateKey(dateKey);
+  const endMinutes = startMinutes + durationMinutes;
+
+  const [rangesByDay, blockedPeriods, appointments] = await Promise.all([
+    getWorkingRangesByDay(),
+    getBlockedPeriodsInRange(date, date),
+    prisma.appointment.findMany({
+      where: {
+        date,
+        status: { not: "cancelada" },
+        ...(excludeAppointmentId ? { id: { not: excludeAppointmentId } } : {}),
+      },
+      select: { minutes: true, durationMinutes: true },
+    }),
+  ]);
+
+  const ranges = rangesByDay[date.getUTCDay()] ?? [];
+  const withinWorkingHours = ranges.some((r) => startMinutes >= r.startMinutes && endMinutes <= r.endMinutes);
+  if (!withinWorkingHours) return { available: false, reason: "Fuera del horario de atención configurado" };
+
+  if (isRangeBlockedBy(date, startMinutes, endMinutes, blockedPeriods)) {
+    return { available: false, reason: "Ese horario está bloqueado" };
+  }
+
+  const overlapping = appointments.some(
+    (a) => startMinutes < a.minutes + a.durationMinutes && endMinutes > a.minutes,
+  );
+  if (overlapping) return { available: false, reason: "Ese horario se cruza con otra cita ya agendada" };
+
+  if (isWithinCutoff(dateKey, startMinutes, 0)) {
+    return { available: false, reason: "Ese horario ya pasó" };
+  }
+
+  return { available: true };
 }
 
 /** Whether a specific slot can currently be booked (working hours + not blocked + enough lead time; does not check for an existing appointment). */

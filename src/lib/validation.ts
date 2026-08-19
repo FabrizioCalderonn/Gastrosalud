@@ -18,10 +18,11 @@ export const createAppointmentSchema = z.object({
 
 export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 
-/** Admin-panel appointment creation (Doctora/Recepción). No email required, DUI required, links to an existing Patient when provided. */
+/** Admin-panel appointment creation (Doctora/Recepción). No email required, DUI required, links to an existing Patient when provided. Duration is free-form (Google-Calendar-style), not a fixed slot. */
 export const createAdminAppointmentSchema = z.object({
   dateKey: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida"),
   minutes: z.number().int().min(0).max(24 * 60),
+  durationMinutes: z.number().int().min(5, "La duración mínima es 5 minutos").max(8 * 60),
   patientId: z.string().trim().min(1).optional(),
   name: z.string().trim().min(2, "Ingresa el nombre completo").max(120),
   phone: z.string().trim().min(6, "Ingresa un teléfono válido").max(30),

@@ -18,6 +18,9 @@ model Appointment {
   patientName String
   phone       String
   dui         String?
+  // Free-form duration per appointment (Google-Calendar-style), in minutes. Defaults to the
+  // clinic's configured default duration at creation time; existing rows default to 30.
+  durationMinutes Int  @default(30)
   // Optional — staff-created appointments may not have one. Automated emails
   // (confirm/cancel/reminder) are skipped when null.
   email       String?

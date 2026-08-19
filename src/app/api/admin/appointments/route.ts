@@ -3,8 +3,20 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSession, hasRole } from "@/lib/auth";
 import { parseDateKey, todayDateKey } from "@/lib/schedule";
-import { isSlotWithinScheduleAndUnblocked } from "@/lib/scheduling";
+import { getBusyRangesForDate, isRangeAvailable } from "@/lib/scheduling";
 import { createAdminAppointmentSchema } from "@/lib/validation";
+
+export async function GET(req: NextRequest) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
+  const date = req.nextUrl.searchParams.get("date");
+  if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return NextResponse.json({ error: "Fecha inválida" }, { status: 400 });
+  }
+  const busy = await getBusyRangesForDate(date);
+  return NextResponse.json({ busy });
+}
 
 export async function POST(req: NextRequest) {
   const session = await getSession();
@@ -18,7 +30,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Datos inválidos", issues: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { dateKey, minutes, patientId, name, phone, dui, email } = parsed.data;
+  const { dateKey, minutes, durationMinutes, patientId, name, phone, dui, email } = parsed.data;
 
   let date: Date;
   try {
@@ -29,9 +41,9 @@ export async function POST(req: NextRequest) {
   if (dateKey < todayDateKey()) {
     return NextResponse.json({ error: "No se puede agendar en una fecha pasada" }, { status: 400 });
   }
-  const available = await isSlotWithinScheduleAndUnblocked(dateKey, minutes);
-  if (!available) {
-    return NextResponse.json({ error: "Ese horario no está disponible" }, { status: 400 });
+  const availability = await isRangeAvailable(dateKey, minutes, durationMinutes);
+  if (!availability.available) {
+    return NextResponse.json({ error: availability.reason ?? "Ese horario no está disponible" }, { status: 400 });
   }
 
   // Find-or-create the patient: prefer an explicit selection from the autocomplete,
@@ -65,6 +77,7 @@ export async function POST(req: NextRequest) {
       data: {
         date,
         minutes,
+        durationMinutes,
         patientId: patient.id,
         patientName: name,
         phone,

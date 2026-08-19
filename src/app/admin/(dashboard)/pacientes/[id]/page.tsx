@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { toDateKey, formatTime } from "@/lib/schedule";
+import { toDateKey, formatTimeRange } from "@/lib/schedule";
 import { formatDateFull } from "@/lib/format";
 import { buildGenericWhatsAppLink } from "@/lib/whatsapp";
 import { getSession, hasRole } from "@/lib/auth";
@@ -88,7 +88,7 @@ export default async function PatientProfilePage({ params }: { params: Promise<{
                 {appointments.map((a) => (
                   <tr key={a.id} className="border-b border-border last:border-0">
                     <td className="py-2 pr-4 text-ink">{formatDateFull(toDateKey(a.date))}</td>
-                    <td className="py-2 pr-4 text-ink">{formatTime(a.minutes)}</td>
+                    <td className="py-2 pr-4 text-ink">{formatTimeRange(a.minutes, a.durationMinutes)}</td>
                     <td className="py-2 pr-4 text-muted">
                       {a.visitType === "primera" ? "Primera vez" : "Seguimiento"}
                     </td>
